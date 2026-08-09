@@ -1,0 +1,10 @@
+<resources>
+    <color name="pb_background">#111318</color>
+    <color name="pb_surface">#191C22</color>
+    <color name="pb_text">#F4F6F8</color>
+    <color name="pb_muted">#AAB2C0</color>
+    <color name="pb_border">#303641</color>
+    <color name="pb_primary">#7891FF</color>
+    <color name="pb_primary_text">#0D1228</color>
+    <color name="pb_done">#667085</color>
+</resources>
