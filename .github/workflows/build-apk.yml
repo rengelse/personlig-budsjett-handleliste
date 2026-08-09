@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
 
@@ -33,17 +34,39 @@ jobs:
         with:
           gradle-version: "8.11.1"
 
-      - name: Build debug APK
-        run: gradle :app:assembleDebug --stacktrace
+      - name: Prepare release signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64" || (echo "ANDROID_KEYSTORE_BASE64 mangler" && exit 1)
+          test -n "$ANDROID_KEYSTORE_PASSWORD" || (echo "ANDROID_KEYSTORE_PASSWORD mangler" && exit 1)
+          test -n "$ANDROID_KEY_ALIAS" || (echo "ANDROID_KEY_ALIAS mangler" && exit 1)
+          test -n "$ANDROID_KEY_PASSWORD" || (echo "ANDROID_KEY_PASSWORD mangler" && exit 1)
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/handleliste-release.jks"
 
-      - name: Upload APK artifact
+      - name: Build signed release APK
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/handleliste-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: gradle :app:assembleRelease --stacktrace
+
+      - name: Rename APK
+        run: cp app/build/outputs/apk/release/app-release.apk handleliste.apk
+
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: personlig-budsjett-handleliste-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: personlig-budsjett-handleliste
+          path: handleliste.apk
 
-      - name: Attach APK to tagged release
+      - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/mobile-v')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/debug/app-debug.apk
+          files: handleliste.apk
+          generate_release_notes: true

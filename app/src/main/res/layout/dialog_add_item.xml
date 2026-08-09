@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+ android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp">
+ <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Legg til vare"
+  android:textColor="@color/pb_text" android:textSize="22sp" android:textStyle="bold"/>
+ <EditText android:id="@+id/quickSearch" android:layout_width="match_parent" android:layout_height="52dp"
+  android:layout_marginTop="12dp" android:hint="Søk eller skriv varenavn"/>
+ <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="14dp"
+  android:text="Mest brukt" android:textColor="@color/pb_text" android:textStyle="bold"/>
+ <LinearLayout android:id="@+id/mostUsedContainer" android:layout_width="match_parent" android:layout_height="wrap_content"
+  android:orientation="vertical" android:layout_marginTop="5dp"/>
+ <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp"
+  android:text="Nylig brukt" android:textColor="@color/pb_text" android:textStyle="bold"/>
+ <LinearLayout android:id="@+id/recentContainer" android:layout_width="match_parent" android:layout_height="wrap_content"
+  android:orientation="vertical" android:layout_marginTop="5dp"/>
+</LinearLayout>

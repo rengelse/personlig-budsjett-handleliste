@@ -3,24 +3,34 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="7dp"
-    android:background="@drawable/bg_card"
+    android:minHeight="64dp"
     android:gravity="center_vertical"
-    android:minHeight="68dp"
     android:orientation="horizontal"
-    android:padding="10dp">
+    android:paddingLeft="10dp"
+    android:paddingRight="12dp"
+    android:paddingTop="7dp"
+    android:paddingBottom="7dp">
 
     <CheckBox
         android:id="@+id/check"
-        android:layout_width="44dp"
-        android:layout_height="44dp"/>
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:buttonTint="@color/pb_primary"/>
+
+    <TextView
+        android:id="@+id/itemIcon"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:gravity="center"
+        android:text="🛒"
+        android:textSize="22sp"/>
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:paddingLeft="4dp"
+        android:paddingLeft="6dp"
         android:paddingRight="8dp">
 
         <TextView
@@ -28,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/pb_text"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold"/>
 
         <TextView

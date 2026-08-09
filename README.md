@@ -1,60 +1,30 @@
-# Personlig Budsjett – Handleliste Android
+# v0.4.2 – Innstillinger og bunnnavigasjon
 
-Første proof-of-concept for den lokale Android-følgeappen til Personlig Budsjett.
+- Ny Innstillinger-fane i bunnnavigasjonen.
+- Bunnnavigasjon: Oversikt · Handleliste · Skann QR · Innstillinger.
+- Versjonsnummer hentes dynamisk fra BuildConfig.
+- Innstillinger har eget område for Om appen og Oppdateringer.
+- Oppdateringsmotor kobles på i neste steg.
 
-## v0.1.0
+# Personlig Budsjett – Handleliste Android v0.4.0
 
-- Android 6.0+ (API 23)
-- Ingen konto eller innlogging
-- Ingen backend/server
-- Lokal lagring på telefonen
-- Skann handleliste direkte fra QR
-- Erstatt eller slå sammen med eksisterende liste
-- Kategorivisning
-- Avkryssing av varer
-- Ferdige varer flyttes til egen seksjon
-- Legg til / rediger / slett varer manuelt
-- Estimert pris kan vises når desktop-appen sender den
-- Lys/mørk modus følger telefonen
+## Nytt
+- Ekte **Oversikt**-skjerm med fremdrift, forventet totalpris, gjenstående beløp, manglende priser og butikkoversikt.
+- **Handleliste** er egen navigerbar hovedvisning.
+- **Skann QR** beholdes som tredje hovedhandling.
+- **Legg til vare** har nå Mest brukt, Nylig brukt og manuelt varenavn.
+- Bruksfrekvens lagres lokalt på telefonen.
+- Tannhjulet er fjernet.
+- Versjonsnummer vises direkte under «Handleliste».
+- Android WindowInsets-fiksen fra v0.3.1 beholdes.
+- PB1-format og eksisterende handlelistedata beholdes.
 
-## QR-protokoll PB1
+## Release-signering
 
-Produksjonsformat:
+Fra v0.4.4 bygges GitHub Release-APK med `assembleRelease` og en permanent signing key lagret som GitHub Actions Secrets. Selve `.jks`-filen skal aldri committes til repoet. Workflowen publiserer fortsatt APK-en med stabilt navn `handleliste.apk`.
 
-`PB1:<base64url(gzip(utf8(json)))>`
 
-JSON før komprimering:
 
-```json
-{
-  "v": 1,
-  "list": "Handleliste uke 33",
-  "items": [
-    {
-      "name": "Kjøttdeig",
-      "qty": 400,
-      "unit": "g",
-      "category": "Kjøtt",
-      "price": 59.9,
-      "store": "REMA 1000",
-      "ean": "7035620057773"
-    }
-  ]
-}
-```
+## Oppdateringer
 
-Appen aksepterer også rå JSON i utviklingsfasen, men desktop-integrasjonen skal bruke `PB1:`.
-
-## Bygg APK gratis med GitHub
-
-Prosjektet inneholder `.github/workflows/build-apk.yml`.
-
-1. Opprett et GitHub-repository.
-2. Last opp innholdet i dette prosjektet.
-3. Push til `main`.
-4. Åpne **Actions → Build Android APK**.
-5. Ferdig APK ligger som artifact `personlig-budsjett-handleliste-debug`.
-
-Når vi senere lager tag som `mobile-v0.1.0`, legges APK-en også på GitHub Release automatisk.
-
-> POC-en bruker debug-signert APK. Før permanent distribusjon lager vi en fast privat signeringsnøkkel slik at nye APK-versjoner kan installeres som oppdateringer over eksisterende app.
+Fra v0.4.5 sjekker appen GitHub Releases automatisk og kan laste ned `handleliste.apk`. Android viser fortsatt sin systembekreftelse før APK-en installeres. Release-builds må signeres med samme permanente nøkkel.
