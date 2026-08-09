@@ -1,3 +1,10 @@
+# v0.5.2 – Forbedret Innstillinger
+
+- Slår sammen «Om appen» og «Oppdateringer» til ett kompakt kort.
+- Viser installert versjon, nyeste versjon og oppdateringsstatus samlet.
+- Beholder Release-info, manuell oppdateringssjekk og Oppdater-knappen.
+- Ingen endringer i den fungerende oppdateringsmotoren.
+
 # v0.5.1 – Oppdateringstest
 
 - Ren testrelease for den nye permanent signerte v0.5.x-linjen.
