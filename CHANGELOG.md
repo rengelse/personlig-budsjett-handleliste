@@ -1,3 +1,11 @@
+# v0.5.1 – Oppdateringstest
+
+- Ren testrelease for den nye permanent signerte v0.5.x-linjen.
+- Ingen funksjonelle endringer utover versjonsnummer.
+- Skal oppdages automatisk av installert v0.5.0.
+- Tester varsling, release-info, nedlasting og Android-oppdatering over eksisterende installasjon.
+- Eksisterende handlelister og brukerdata skal beholdes.
+
 # v0.5.0 – Ny permanent signert baseline
 
 - Ny ren release-linje etter reset av GitHub-repo og signing-oppsett.
