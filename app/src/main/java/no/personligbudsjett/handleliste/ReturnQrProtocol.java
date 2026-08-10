@@ -14,6 +14,51 @@ public final class ReturnQrProtocol {
 
     private ReturnQrProtocol() {}
 
+
+    /** Build direct PB2 v2 JSON for POST over the local pairing connection. */
+    public static String encodeJsonV2(ShoppingTrip trip) throws Exception {
+        if (trip == null || !trip.isCompleted()) {
+            throw new IllegalArgumentException("Handleturen må være fullført");
+        }
+        long purchasedCount = trip.items.stream().filter(item -> item.checked).count();
+        if (purchasedCount == 0) {
+            throw new IllegalArgumentException("Handleturen har ingen varer markert som kjøpt");
+        }
+        if (trip.sourceIdentityMixed || trip.sourceListId == null || trip.sourceListId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Denne handleturen mangler desktopens liste-ID og kan ikke sendes tilbake via lokal overføring");
+        }
+        boolean missingItemIdentity = trip.items.stream()
+                .filter(item -> item.checked)
+                .anyMatch(item -> item.sourceItemId == null || item.sourceItemId.trim().isEmpty());
+        if (missingItemIdentity) {
+            throw new IllegalArgumentException("En eller flere kjøpte varer mangler desktop-ID og kan ikke sendes presist tilbake");
+        }
+        return buildV2Root(trip).toString();
+    }
+
+    private static JSONObject buildV2Root(ShoppingTrip trip) throws Exception {
+        JSONObject root = new JSONObject();
+        root.put("v", 2);
+        root.put("id", trip.sourceListId.trim());
+        if (trip.actualTotal != null) root.put("t", trip.actualTotal);
+
+        JSONArray purchasedItems = new JSONArray();
+        for (ShoppingItem item : trip.items) {
+            if (!item.checked) continue;
+            JSONObject o = new JSONObject();
+            o.put("i", item.sourceItemId.trim());
+            o.put("n", item.name);
+            o.put("q", item.qty);
+            o.put("u", item.unit == null ? "" : item.unit);
+            o.put("c", item.category == null ? "" : item.category);
+            o.put("s", item.store == null ? "" : item.store);
+            if (item.actualPrice != null) o.put("p", item.actualPrice);
+            purchasedItems.put(o);
+        }
+        root.put("i", purchasedItems);
+        return root;
+    }
+
     public static String encode(ShoppingTrip trip) throws Exception {
         if (trip == null || !trip.isCompleted()) {
             throw new IllegalArgumentException("Handleturen må være fullført");
@@ -36,27 +81,7 @@ public final class ReturnQrProtocol {
     }
 
     private static String encodeV2(ShoppingTrip trip) throws Exception {
-        JSONObject root = new JSONObject();
-        root.put("v", 2);
-        root.put("id", trip.sourceListId.trim());
-        if (trip.actualTotal != null) root.put("t", trip.actualTotal);
-
-        JSONArray purchasedItems = new JSONArray();
-        for (ShoppingItem item : trip.items) {
-            if (!item.checked) continue;
-            JSONObject o = new JSONObject();
-            if (item.sourceItemId != null && !item.sourceItemId.trim().isEmpty()) o.put("i", item.sourceItemId.trim());
-            o.put("n", item.name);
-            o.put("q", item.qty);
-            o.put("u", item.unit == null ? "" : item.unit);
-            o.put("c", item.category == null ? "" : item.category);
-            o.put("s", item.store == null ? "" : item.store);
-            // In PB2 v2, p means actual item price. Never send the expected PB1 price here.
-            if (item.actualPrice != null) o.put("p", item.actualPrice);
-            purchasedItems.put(o);
-        }
-        root.put("i", purchasedItems);
-        return encodeRoot(root);
+        return encodeRoot(buildV2Root(trip));
     }
 
     private static String encodeLegacyV1(ShoppingTrip trip) throws Exception {

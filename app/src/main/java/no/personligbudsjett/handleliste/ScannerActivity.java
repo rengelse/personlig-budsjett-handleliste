@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ScannerActivity extends AppCompatActivity {
     public static final String EXTRA_QR = "qr";
+    public static final String EXTRA_PROMPT = "prompt";
 
     private PreviewView previewView;
     private TextView statusText;
@@ -53,6 +54,8 @@ public class ScannerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scanner);
         previewView = findViewById(R.id.preview);
         statusText = findViewById(R.id.statusText);
+        String prompt = getIntent().getStringExtra(EXTRA_PROMPT);
+        if (prompt != null && !prompt.trim().isEmpty()) statusText.setText(prompt);
         findViewById(R.id.closeButton).setOnClickListener(v -> finish());
 
         executor = Executors.newSingleThreadExecutor();
@@ -76,9 +79,7 @@ public class ScannerActivity extends AppCompatActivity {
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                // PB1 payloads can become fairly dense when they contain stable list/item UUIDs.
-                // CameraX may otherwise select a low default analysis resolution (often around 640x480),
-                // which is insufficient for reliable ML Kit decoding of dense QR codes.
+                // Keep a detailed analysis frame for reliable pairing-QR decoding across screen sizes.
                 ImageAnalysis analysis = new ImageAnalysis.Builder()
                         .setTargetResolution(new Size(1920, 1080))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)

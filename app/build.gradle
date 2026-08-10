@@ -16,8 +16,8 @@ android {
         applicationId "no.personligbudsjett.handleliste"
         minSdk 23
         targetSdk 35
-        versionCode 9
-        versionName "0.6.5"
+        versionCode 10
+        versionName "0.6.6"
     }
 
     buildFeatures {
@@ -64,5 +64,4 @@ dependencies {
 
     // Bundled model: QR scanning works immediately and does not depend on a model download.
     implementation 'com.google.mlkit:barcode-scanning:17.3.0'
-    implementation 'com.google.zxing:core:3.5.3'
 }

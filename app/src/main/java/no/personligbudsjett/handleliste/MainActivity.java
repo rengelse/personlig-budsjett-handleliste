@@ -2,8 +2,6 @@ package no.personligbudsjett.handleliste;
 
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Build;
 import android.widget.Button;
@@ -14,7 +12,6 @@ import android.text.InputType;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -28,10 +25,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.common.BitMatrix;
-
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -41,8 +34,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.net.URL;
+
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
+    private enum TransferMode { NONE, RECEIVE_FROM_PC, SEND_TO_PC }
+
+    private TransferMode pendingTransferMode = TransferMode.NONE;
+    private ShoppingTrip pendingTransferTrip = null;
     private ShoppingStore store;
     private ShoppingTrip activeTrip;
     private final List<ShoppingItem> items = new ArrayList<>();
@@ -96,9 +96,15 @@ public class MainActivity extends AppCompatActivity {
 
     private final ActivityResultLauncher<Intent> scannerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                TransferMode mode = pendingTransferMode;
+                ShoppingTrip trip = pendingTransferTrip;
+                pendingTransferMode = TransferMode.NONE;
+                pendingTransferTrip = null;
                 if (result.getResultCode() != RESULT_OK || result.getData() == null) return;
                 String raw = result.getData().getStringExtra(ScannerActivity.EXTRA_QR);
-                if (raw != null) importQr(raw);
+                if (raw == null) return;
+                if (mode == TransferMode.RECEIVE_FROM_PC) receiveFromPc(raw);
+                else if (mode == TransferMode.SEND_TO_PC && trip != null) sendTripToPc(trip, raw);
             });
 
     @Override
@@ -184,8 +190,7 @@ public class MainActivity extends AppCompatActivity {
         completeTripButton.setOnClickListener(v -> completeCurrentTrip());
         groupStoreButton.setOnClickListener(v -> setGrouping(true));
         groupCategoryButton.setOnClickListener(v -> setGrouping(false));
-        navScanButton.setOnClickListener(v ->
-                scannerLauncher.launch(new Intent(this, ScannerActivity.class)));
+        navScanButton.setOnClickListener(v -> startReceiveFromPc());
         navOverviewButton.setOnClickListener(v -> showOverview());
         navListButton.setOnClickListener(v -> showList());
         navSettingsButton.setOnClickListener(v -> showSettings());
@@ -403,28 +408,122 @@ public class MainActivity extends AppCompatActivity {
         render();
     }
 
-    private void importQr(String raw) {
-        try {
-            QrProtocol.Payload payload = QrProtocol.decode(raw);
-            if (items.isEmpty()) {
-                replaceWith(payload);
-                return;
-            }
+    private void startReceiveFromPc() {
+        pendingTransferMode = TransferMode.RECEIVE_FROM_PC;
+        pendingTransferTrip = null;
+        Intent intent = new Intent(this, ScannerActivity.class);
+        intent.putExtra(ScannerActivity.EXTRA_PROMPT, "Skann «Send til mobil»-QR fra Personlig Budsjett på PC");
+        scannerLauncher.launch(intent);
+    }
 
-            new AlertDialog.Builder(this)
-                    .setTitle(payload.listName)
-                    .setMessage(payload.items.size() + " varer mottatt. Hva vil du gjøre?")
-                    .setPositiveButton("Erstatt liste", (d,w) -> replaceWith(payload))
-                    .setNeutralButton("Slå sammen", (d,w) -> mergeWith(payload))
-                    .setNegativeButton("Avbryt", null)
-                    .show();
+    private void startSendToPc(ShoppingTrip trip) {
+        try {
+            // Validate that this historical trip can produce an exact PB2 v2 return before opening the camera.
+            ReturnQrProtocol.encodeJsonV2(trip);
         } catch (Exception e) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Kunne ikke lese handlelisten")
-                    .setMessage(e.getMessage())
-                    .setPositiveButton("OK", null)
-                    .show();
+            showTransferError("Kan ikke sende handleturen", e);
+            return;
         }
+        pendingTransferMode = TransferMode.SEND_TO_PC;
+        pendingTransferTrip = trip;
+        Intent intent = new Intent(this, ScannerActivity.class);
+        intent.putExtra(ScannerActivity.EXTRA_PROMPT, "Skann «Motta fra mobil»-QR fra Personlig Budsjett på PC");
+        scannerLauncher.launch(intent);
+    }
+
+    private void receiveFromPc(String pairingQr) {
+        final URL url;
+        try {
+            url = LocalTransfer.validatePairingUrl(pairingQr, LocalTransfer.Direction.RECEIVE_FROM_PC);
+        } catch (Exception e) {
+            showTransferError("Ugyldig pairing-QR", e);
+            return;
+        }
+
+        AlertDialog progress = transferProgress("Mottar handleliste …", "Henter handlelisten direkte fra PC-en på lokalnettet.");
+        new Thread(() -> {
+            try {
+                String json = LocalTransfer.getJson(url);
+                QrProtocol.Payload payload = QrProtocol.decodeJson(json);
+                runOnUiThread(() -> {
+                    progress.dismiss();
+                    offerImportedPayload(payload);
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progress.dismiss();
+                    showTransferError("Kunne ikke motta handlelisten", e);
+                });
+            }
+        }, "pb-lan-receive").start();
+    }
+
+    private void sendTripToPc(ShoppingTrip trip, String pairingQr) {
+        final URL url;
+        final String json;
+        try {
+            url = LocalTransfer.validatePairingUrl(pairingQr, LocalTransfer.Direction.SEND_TO_PC);
+            json = ReturnQrProtocol.encodeJsonV2(trip);
+        } catch (Exception e) {
+            showTransferError("Kunne ikke starte sending", e);
+            return;
+        }
+
+        AlertDialog progress = transferProgress("Sender handletur …", "Sender kjøpte varer direkte til PC-en på lokalnettet.");
+        new Thread(() -> {
+            try {
+                String response = LocalTransfer.postJson(url, json);
+                JSONObject result = new JSONObject(response);
+                if (!result.optBoolean("ok", false)) throw new IllegalArgumentException("Desktop bekreftet ikke mottaket");
+                runOnUiThread(() -> {
+                    progress.dismiss();
+                    new AlertDialog.Builder(this)
+                            .setTitle("Handletur sendt")
+                            .setMessage("De kjøpte varene er sendt til Personlig Budsjett på PC.")
+                            .setPositiveButton("OK", null)
+                            .show();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progress.dismiss();
+                    showTransferError("Kunne ikke sende handleturen", e);
+                });
+            }
+        }, "pb-lan-send").start();
+    }
+
+    private AlertDialog transferProgress(String title, String message) {
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setCancelable(false)
+                .create();
+        dialog.show();
+        return dialog;
+    }
+
+    private void showTransferError(String title, Exception e) {
+        String message = e.getMessage();
+        if (message == null || message.trim().isEmpty()) message = "Ukjent feil";
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message + "\n\nKontroller at telefon og PC er på samme lokale Wi-Fi/LAN, og lag en ny pairing-QR hvis sesjonen har utløpt.")
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private void offerImportedPayload(QrProtocol.Payload payload) {
+        if (items.isEmpty()) {
+            replaceWith(payload);
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(payload.listName)
+                .setMessage(payload.items.size() + " varer mottatt. Hva vil du gjøre?")
+                .setPositiveButton("Erstatt liste", (d,w) -> replaceWith(payload))
+                .setNeutralButton("Slå sammen", (d,w) -> mergeWith(payload))
+                .setNegativeButton("Avbryt", null)
+                .show();
     }
 
     private void replaceWith(QrProtocol.Payload payload) {
@@ -1014,66 +1113,9 @@ public class MainActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle(trip.listName == null || trip.listName.trim().isEmpty() ? "Handletur" : trip.listName)
                 .setView(scroll)
-                .setPositiveButton("Send til Personlig Budsjett", (dialog, which) -> showReturnQr(trip))
+                .setPositiveButton("Send til PC", (dialog, which) -> startSendToPc(trip))
                 .setNegativeButton("Lukk", null)
                 .show();
-    }
-
-    private void showReturnQr(ShoppingTrip trip) {
-        try {
-            String payload = ReturnQrProtocol.encode(trip);
-            Bitmap qr = createQrBitmap(payload, 900);
-
-            LinearLayout content = new LinearLayout(this);
-            content.setOrientation(LinearLayout.VERTICAL);
-            content.setPadding(dp(18), dp(8), dp(18), dp(8));
-
-            TextView help = new TextView(this);
-            help.setText("Åpne Personlig Budsjett på PC og skann denne QR-koden. Den inneholder identiteten til handleturen, summer og varene som faktisk ble kjøpt.");
-            help.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
-            help.setTextSize(14);
-            help.setPadding(0, 0, 0, dp(12));
-            content.addView(help);
-
-            ImageView image = new ImageView(this);
-            image.setImageBitmap(qr);
-            image.setAdjustViewBounds(true);
-            image.setContentDescription("Retur-QR til Personlig Budsjett");
-            content.addView(image, new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
-
-            TextView note = new TextView(this);
-            long purchasedCount = trip.items.stream().filter(item -> item.checked).count();
-            note.setText("Returformat: PB2 · " + purchasedCount + " kjøpte varer");
-            note.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
-            note.setTextSize(12);
-            note.setPadding(0, dp(10), 0, 0);
-            content.addView(note);
-
-            new AlertDialog.Builder(this)
-                    .setTitle("Send til Personlig Budsjett")
-                    .setView(content)
-                    .setPositiveButton("Lukk", null)
-                    .show();
-        } catch (Exception e) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Kunne ikke lage QR-kode")
-                    .setMessage(e.getMessage() == null ? "Ukjent feil" : e.getMessage())
-                    .setPositiveButton("OK", null)
-                    .show();
-        }
-    }
-
-    private Bitmap createQrBitmap(String value, int size) throws Exception {
-        BitMatrix matrix = new MultiFormatWriter().encode(value, BarcodeFormat.QR_CODE, size, size);
-        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-        for (int y = 0; y < size; y++) {
-            for (int x = 0; x < size; x++) {
-                bitmap.setPixel(x, y, matrix.get(x, y) ? Color.BLACK : Color.WHITE);
-            }
-        }
-        return bitmap;
     }
 
     private String capitalize(String text) {

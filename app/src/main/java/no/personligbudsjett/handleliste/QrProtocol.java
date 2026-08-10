@@ -35,16 +35,19 @@ public final class QrProtocol {
             byte[] compressed = Base64.decode(encoded, Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
             json = gunzip(compressed);
         } else if (value.startsWith("{")) {
-            // Development/debug fallback. Production desktop QR uses PB1.
             json = value;
         } else {
             throw new IllegalArgumentException("QR-koden er ikke fra Personlig Budsjett");
         }
+        return decodeJson(json);
+    }
 
+    /** Parse the direct application/json body returned by the local desktop transfer server. */
+    public static Payload decodeJson(String json) throws Exception {
+        if (json == null || json.trim().isEmpty()) throw new IllegalArgumentException("Tom handleliste fra PC");
         JSONObject root = new JSONObject(json);
         int version = root.optInt("v", 0);
-        if (version != 1 && version != 2) throw new IllegalArgumentException("Ukjent QR-versjon");
-
+        if (version != 1 && version != 2) throw new IllegalArgumentException("Ukjent PB1-versjon");
         return version == 2 ? decodeV2(root) : decodeV1(root);
     }
 

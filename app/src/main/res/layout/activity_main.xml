@@ -487,8 +487,8 @@ Handleliste"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:text="▣
-Skann QR"
+            android:text="⇩
+Motta fra PC"
             android:textAllCaps="false"
             android:textColor="@color/pb_muted"
             android:textSize="12sp"/>

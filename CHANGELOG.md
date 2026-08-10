@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.6.6
+- Byttet mobiloverføring fra data-i-QR til lokal HTTP pairing mot Personlig Budsjett Desktop v0.7.3.
+- QR inneholder nå bare `/pb/send/<token>` eller `/pb/receive/<token>` på desktopens lokale IP/port.
+- «Motta fra PC» gjør HTTP GET og leser direkte PB1 v2 JSON.
+- «Send til PC» gjør HTTP POST med direkte PB2 v2 JSON fra fullført handletur.
+- Validerer lokal/private IPv4, HTTP-scheme, retning/path og pairing-token før tilkobling.
+- Tillater cleartext HTTP til lokal pairing-adresse og bruker ingen ekstern server.
+- Lagt til håndtering av 400/404/405/410 og eksplisitt `{"ok":true}`-bekreftelse fra desktop.
+- Fjernet ZXing QR-generatoravhengigheten fra app-builden; returdata vises ikke lenger som QR på mobilen.
+
 ## v0.6.5
 - Added compact PB1 v2 decoding for Desktop v0.7.2.
 - Added compact PB2 v2 return format with preserved desktop list/item identities.

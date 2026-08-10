@@ -1,1 +1,15 @@
-{"v":2,"id":"l2k9x7","i":[{"i":"i8fs2q","n":"Kjøttdeig","q":1,"u":"stk","c":"Kjøtt","s":"REMA 1000","p":69.9},{"i":"iq7m3a","n":"Salt","q":1,"u":"stk","c":"Mat","s":""}]}
+{
+  "v": 2,
+  "id": "labc123",
+  "i": [
+    {
+      "i": "ixyz789",
+      "n": "Kjøttdeig",
+      "q": 1,
+      "u": "stk",
+      "c": "Mat",
+      "s": "REMA 1000",
+      "p": 69.9
+    }
+  ]
+}
