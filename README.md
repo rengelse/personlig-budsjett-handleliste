@@ -1,28 +1,85 @@
-# Personlig Budsjett Handleliste v0.6.6
+# Personlig Budsjett
 
-Android-handleappen for **Personlig Budsjett**. Desktop planlegger handlelisten; mobilen mottar den direkte fra Personlig Budsjett over samme lokale Wi-Fi/LAN og brukes under handleturen.
+Electron-app for personlig økonomi og matplanlegging.
 
-## Lokal mobiloverføring
+## Kjør lokalt
 
-Fra v0.6.6 er QR-koden bare en kort, engangs pairing-adresse til Electron-appen på PC-en. Selve handlelisten ligger ikke i QR-koden.
+```bash
+npm install
+npm run dev
+```
 
-- **Motta fra PC:** skann desktopens `/pb/send/<token>`-QR -> Android gjør lokal HTTP GET -> mottar direkte PB1 v2 JSON.
-- **Send til PC:** åpne en fullført handletur -> skann desktopens `/pb/receive/<token>`-QR -> Android POST-er direkte PB2 v2 JSON.
-- Ingen GZIP/Base64/PB-prefiks brukes over LAN.
-- Ingen ekstern server eller sky brukes.
-- Telefon og PC må være på samme lokale nettverk.
-- Pairing-adressen valideres som lokal/private IPv4 og korrekt overføringsretning før tilkobling.
+## Bygg Windows-installer
 
-PB v2-identitetene fra desktop beholdes uendret gjennom hele handleturen slik at retur kan matches presist.
+```bash
+npm run dist
+```
 
-Se `QR_PROTOCOL.md` for full kontrakt.
+## Tester
 
-## Handleturer og historikk
+```bash
+npm test
+```
 
-Den aktive handlelisten lagres som en handletur. Forventet total fra desktop beholdes separat fra manuelt registrert faktisk total. Fullførte turer lagres i lokal historikk, gruppert etter måned og dato, og kan åpnes i read-only detaljvisning.
+## Budsjettposter
 
-## Distribusjon og oppdatering
+En budsjettpost angir navn, kategori, planlagt beløp, gyldighet og eventuelt kalenderuke. Kalenderukene beregnes fra valgt måned og år etter ISO-ukestandard.
 
-GitHub Actions bygger signert release-APK. Tagger på formen `mobile-v*` publiserer APK-en som GitHub Release asset med stabilt navn `handleliste.apk`. Appens update engine bruker Latest Release.
 
-Release-signering skal alltid bruke samme permanente signing key via GitHub Actions Secrets. `.jks` skal aldri committes til repositoryet.
+## Endring i 0.4.15
+Kontoer-modulen er fjernet. Appen fokuserer på inntekter, utgifter, budsjett, lån, sparing og analyser.
+
+
+## Endring i 0.4.16
+«Mine ingredienser» er fjernet. Ingredienser-fanen brukes nå til å finne produkter og priser fra Kassalapp. Produkter kan legges direkte i Matlager eller Handleliste.
+
+### Ukebudsjett
+For budsjettposter som gjelder valgt måned kan en faktisk ISO-kalenderuke velges. Hver uke vises som egen budsjettlinje, og registrerte utgifter fordeles automatisk etter utgiftsdatoens ISO-uke. Samme kategori kan ikke ha både hele måneden og ukebudsjetter i samme måned.
+
+
+## Vedlikehold
+Under Innstillinger → Vedlikehold kan enkeltområder tømmes eller hele appen nullstilles.
+
+
+## Modaloppførsel i 0.4.21
+Modaler forblir åpne ved klikk utenfor. Ved Avbryt, X eller Escape spør appen om ulagrede endringer skal forkastes.
+
+## Sparing i v0.4.23
+Sparemål krever kun målsum, planlagt månedlig sparing, valgfri måldato og prioritet. Fremdrift og forventet måldato beregnes automatisk. Forventet overskudd vises kun som forslag og endrer ikke regnskapet eller spart beløp automatisk.
+
+
+## Oppskriftskostnader
+Oppskrifter kan kobles til konkrete Kassalapp-produkter. Brukt mengde beregnes mot pakningsmengde og pakningspris. Totalpris og pris per porsjon oppdateres automatisk.
+
+
+## Oppskriftsimport v1
+Under Oppskrifter kan en URL importeres når siden publiserer schema.org Recipe som JSON-LD. Resultatet åpnes alltid i editoren før lagring.
+
+
+## Ingrediensmotor v2
+Importerte ingredienser matches automatisk mot Kassalapp. Sikre treff velges, mens usikre forslag vises for kontroll. Tidligere valg huskes lokalt.
+
+
+## v0.4.33 – Matøkonomi
+- Ny samlet Matøkonomi-side.
+- Handleliste genereres fra matplan og oppskrifter.
+- Like ingredienser slås sammen og matlager trekkes fra.
+- Matbudsjett, faktisk forbruk, matplan og handleliste sammenlignes.
+
+
+## Arkitektur
+- `src/js/pricing-engine.js`: autoritativ pris-, enhets- og kostnadsmotor for matmodulene.
+
+## Shopping Engine
+
+`src/js/shopping-engine.js` er autoritet for handlelisteflyten: sammenslåing fra matplan, skalering, lagerfratrekk, genererte poster, statusoppsummering og bokføringsgrunnlag. UI-et skal ikke duplisere denne logikken.
+
+### Meal Planning Engine
+`src/js/meal-planning-engine.js` er autoritet for matplanposter, oppskriftskobling, porsjonsskalering, ukekopiering og matplanoppsummering.
+
+### Mengdekontroll i handlelisten
+Shopping Engine summerer ingrediensbehov fra alle planlagte oppskrifter, konverterer kompatible enheter, trekker fra registrert matlager og beregner antall hele pakninger som må kjøpes.
+
+## Lageranalyse
+
+Matlager viser en lokal rapport basert på registrerte måltider og oppskrifter. Rapporten beregner ukentlig bruk, hvor lenge beholdningen anslås å vare, anbefalt minimum og om varen bør fylles opp. Resultatene er kun forslag og endrer ikke handlelisten automatisk.

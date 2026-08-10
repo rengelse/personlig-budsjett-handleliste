@@ -1,0 +1,61 @@
+{
+  "name": "personlig-budsjett",
+  "version": "0.7.5",
+  "description": "Offline personlig budsjett- og matplanlegger bygget med Electron",
+  "main": "electron/main.js",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron .",
+    "start": "electron .",
+    "dist": "electron-builder --win nsis",
+    "test": "node tests/run-tests.js"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "no.personligbudsjett.app",
+    "productName": "Personlig Budsjett",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Personlig Budsjett"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "rengelse",
+        "repo": "Personlig-Budsjett-Releases",
+        "releaseType": "release"
+      }
+    ],
+    "artifactName": "Personlig-Budsjett-Setup-${version}.${ext}"
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.2"
+  }
+}
