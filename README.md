@@ -1,8 +1,8 @@
-# Personlig Budsjett – Handleliste Android v0.6.0
+# Personlig Budsjett – Handleliste Android v0.6.1
 
 Android-handleappen for **Personlig Budsjett**. Desktopappen planlegger og genererer handlelisten; mobilappen mottar listen via PB1-QR og brukes under selve handleturen.
 
-## v0.6.0
+## v0.6.1
 
 - Aktiv handleliste lagres som en **handletur**.
 - Forventet totalpris fra desktop beholdes separat fra manuelt registrert **faktisk totalpris**.

@@ -1,3 +1,12 @@
+# Changelog
+
+## v0.6.1
+- Kollapsbare måneder i Historikk; inneværende måned åpen som standard.
+- Fullførte handleturer kan åpnes med vanlig trykk.
+- Ny read-only detaljvisning med alle varer, butikk, kjøpt-status og prisoppsummering.
+- Historiske data kan ikke redigeres.
+- Forbereder UI for senere retur-QR til Personlig Budsjett.
+
 # v0.6.0 – Handleturer og historikk
 
 - Innfører en egen handleturmodell med stabil ID, opprettet tidspunkt og fullført tidspunkt.

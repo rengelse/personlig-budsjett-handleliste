@@ -12,6 +12,7 @@ import android.text.InputType;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -794,56 +795,195 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        SimpleDateFormat monthKeyFormat = new SimpleDateFormat("yyyy-MM", new Locale("nb", "NO"));
         SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", new Locale("nb", "NO"));
         SimpleDateFormat dayFormat = new SimpleDateFormat("d. MMMM", new Locale("nb", "NO"));
         NumberFormat money = NumberFormat.getCurrencyInstance(new Locale("nb", "NO"));
-        String currentMonth = "";
+        String currentMonthKey = monthKeyFormat.format(new Date());
 
+        Map<String, List<ShoppingTrip>> byMonth = new LinkedHashMap<>();
+        Map<String, Long> monthDates = new LinkedHashMap<>();
         for (ShoppingTrip trip : history) {
             long when = trip.completedAt == null ? trip.createdAt : trip.completedAt;
-            String month = capitalize(monthFormat.format(new Date(when)));
-            if (!month.equals(currentMonth)) {
-                currentMonth = month;
-                TextView monthTitle = new TextView(this);
-                monthTitle.setText(month);
-                monthTitle.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
-                monthTitle.setTextSize(18);
-                monthTitle.setTypeface(monthTitle.getTypeface(), android.graphics.Typeface.BOLD);
-                monthTitle.setPadding(0, dp(18), 0, dp(8));
-                historyContainer.addView(monthTitle);
-            }
-
-            LinearLayout card = new LinearLayout(this);
-            card.setOrientation(LinearLayout.VERTICAL);
-            card.setBackgroundResource(R.drawable.bg_card);
-            card.setPadding(dp(16), dp(14), dp(16), dp(14));
-            LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            cardLp.bottomMargin = dp(10);
-            card.setLayoutParams(cardLp);
-
-            TextView heading = new TextView(this);
-            heading.setText(dayFormat.format(new Date(when)) + "  ·  " + trip.listName);
-            heading.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
-            heading.setTextSize(16);
-            heading.setTypeface(heading.getTypeface(), android.graphics.Typeface.BOLD);
-            card.addView(heading);
-
-            long checked = trip.items.stream().filter(item -> item.checked).count();
-            TextView details = new TextView(this);
-            String expected = money.format(trip.expectedTotal());
-            String actual = trip.actualTotal == null ? "—" : money.format(trip.actualTotal);
-            String deviation = "";
-            if (trip.actualTotal != null) {
-                double diff = trip.actualTotal - trip.expectedTotal();
-                deviation = "\nAvvik: " + (diff > 0 ? "+" : "") + money.format(diff);
-            }
-            details.setText(checked + " av " + trip.items.size() + " kjøpt\nForventet: " + expected + "\nFaktisk: " + actual + deviation);
-            details.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
-            details.setTextSize(14);
-            details.setPadding(0, dp(6), 0, 0);
-            card.addView(details);
-            historyContainer.addView(card);
+            String key = monthKeyFormat.format(new Date(when));
+            byMonth.computeIfAbsent(key, ignored -> new ArrayList<>()).add(trip);
+            monthDates.putIfAbsent(key, when);
         }
+
+        for (Map.Entry<String, List<ShoppingTrip>> entry : byMonth.entrySet()) {
+            String monthKey = entry.getKey();
+            List<ShoppingTrip> monthTrips = entry.getValue();
+            long monthDate = monthDates.get(monthKey);
+
+            LinearLayout monthBlock = new LinearLayout(this);
+            monthBlock.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout.LayoutParams blockLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            blockLp.bottomMargin = dp(8);
+            monthBlock.setLayoutParams(blockLp);
+
+            LinearLayout monthHeader = new LinearLayout(this);
+            monthHeader.setOrientation(LinearLayout.HORIZONTAL);
+            monthHeader.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            monthHeader.setPadding(0, dp(16), 0, dp(10));
+            monthHeader.setClickable(true);
+            monthHeader.setFocusable(true);
+
+            LinearLayout monthText = new LinearLayout(this);
+            monthText.setOrientation(LinearLayout.VERTICAL);
+            monthText.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+            TextView monthTitle = new TextView(this);
+            monthTitle.setText(capitalize(monthFormat.format(new Date(monthDate))));
+            monthTitle.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+            monthTitle.setTextSize(18);
+            monthTitle.setTypeface(monthTitle.getTypeface(), android.graphics.Typeface.BOLD);
+            monthText.addView(monthTitle);
+
+            double actualSum = 0;
+            double expectedSum = 0;
+            int actualCount = 0;
+            for (ShoppingTrip trip : monthTrips) {
+                expectedSum += trip.expectedTotal();
+                if (trip.actualTotal != null) {
+                    actualSum += trip.actualTotal;
+                    actualCount++;
+                }
+            }
+            TextView monthSummary = new TextView(this);
+            String sumText = actualCount == monthTrips.size()
+                    ? "Faktisk: " + money.format(actualSum)
+                    : "Forventet: " + money.format(expectedSum);
+            monthSummary.setText(monthTrips.size() + (monthTrips.size() == 1 ? " handletur · " : " handleturer · ") + sumText);
+            monthSummary.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
+            monthSummary.setTextSize(13);
+            monthSummary.setPadding(0, dp(2), 0, 0);
+            monthText.addView(monthSummary);
+            monthHeader.addView(monthText);
+
+            TextView arrow = new TextView(this);
+            arrow.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
+            arrow.setTextSize(20);
+            arrow.setPadding(dp(12), 0, 0, 0);
+            monthHeader.addView(arrow);
+            monthBlock.addView(monthHeader);
+
+            LinearLayout monthContent = new LinearLayout(this);
+            monthContent.setOrientation(LinearLayout.VERTICAL);
+            monthBlock.addView(monthContent);
+
+            for (ShoppingTrip trip : monthTrips) {
+                long when = trip.completedAt == null ? trip.createdAt : trip.completedAt;
+                LinearLayout card = new LinearLayout(this);
+                card.setOrientation(LinearLayout.VERTICAL);
+                card.setBackgroundResource(R.drawable.bg_card);
+                card.setPadding(dp(16), dp(14), dp(16), dp(14));
+                card.setClickable(true);
+                card.setFocusable(true);
+                LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                cardLp.bottomMargin = dp(10);
+                card.setLayoutParams(cardLp);
+
+                TextView heading = new TextView(this);
+                heading.setText(dayFormat.format(new Date(when)) + "  ·  " + trip.listName);
+                heading.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+                heading.setTextSize(16);
+                heading.setTypeface(heading.getTypeface(), android.graphics.Typeface.BOLD);
+                card.addView(heading);
+
+                long checked = trip.items.stream().filter(item -> item.checked).count();
+                TextView details = new TextView(this);
+                String expected = money.format(trip.expectedTotal());
+                String actual = trip.actualTotal == null ? "—" : money.format(trip.actualTotal);
+                String deviation = "";
+                if (trip.actualTotal != null) {
+                    double diff = trip.actualTotal - trip.expectedTotal();
+                    deviation = "\nAvvik: " + (diff > 0 ? "+" : "") + money.format(diff);
+                }
+                details.setText(checked + " av " + trip.items.size() + " kjøpt\nForventet: " + expected + "\nFaktisk: " + actual + deviation);
+                details.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
+                details.setTextSize(14);
+                details.setPadding(0, dp(6), 0, 0);
+                card.addView(details);
+                card.setOnClickListener(v -> showTripDetails(trip));
+                monthContent.addView(card);
+            }
+
+            boolean expanded = monthKey.equals(currentMonthKey);
+            monthContent.setVisibility(expanded ? View.VISIBLE : View.GONE);
+            arrow.setText(expanded ? "⌃" : "⌄");
+            monthHeader.setOnClickListener(v -> {
+                boolean open = monthContent.getVisibility() == View.VISIBLE;
+                monthContent.setVisibility(open ? View.GONE : View.VISIBLE);
+                arrow.setText(open ? "⌄" : "⌃");
+            });
+            historyContainer.addView(monthBlock);
+        }
+    }
+
+    private void showTripDetails(ShoppingTrip trip) {
+        NumberFormat money = NumberFormat.getCurrencyInstance(new Locale("nb", "NO"));
+        SimpleDateFormat dateFormat = new SimpleDateFormat("d. MMMM yyyy 'kl.' HH:mm", new Locale("nb", "NO"));
+        long when = trip.completedAt == null ? trip.createdAt : trip.completedAt;
+
+        ScrollView scroll = new ScrollView(this);
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(dp(20), dp(8), dp(20), dp(12));
+        scroll.addView(content);
+
+        TextView meta = new TextView(this);
+        long checked = trip.items.stream().filter(item -> item.checked).count();
+        String actual = trip.actualTotal == null ? "—" : money.format(trip.actualTotal);
+        String deviation = "";
+        if (trip.actualTotal != null) {
+            double diff = trip.actualTotal - trip.expectedTotal();
+            deviation = "\nAvvik: " + (diff > 0 ? "+" : "") + money.format(diff);
+        }
+        meta.setText(dateFormat.format(new Date(when)) + "\n" + checked + " av " + trip.items.size() + " varer kjøpt" +
+                "\n\nForventet: " + money.format(trip.expectedTotal()) + "\nFaktisk: " + actual + deviation);
+        meta.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+        meta.setTextSize(15);
+        meta.setPadding(0, 0, 0, dp(16));
+        content.addView(meta);
+
+        Map<String, List<ShoppingItem>> grouped = new LinkedHashMap<>();
+        for (ShoppingItem item : trip.items) {
+            String storeName = item.store == null ? "" : item.store.trim();
+            if (storeName.isEmpty()) storeName = "Butikk ikke valgt";
+            grouped.computeIfAbsent(storeName, ignored -> new ArrayList<>()).add(item);
+        }
+
+        for (Map.Entry<String, List<ShoppingItem>> entry : grouped.entrySet()) {
+            TextView storeTitle = new TextView(this);
+            storeTitle.setText(entry.getKey());
+            storeTitle.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+            storeTitle.setTextSize(16);
+            storeTitle.setTypeface(storeTitle.getTypeface(), android.graphics.Typeface.BOLD);
+            storeTitle.setPadding(0, dp(10), 0, dp(5));
+            content.addView(storeTitle);
+
+            for (ShoppingItem item : entry.getValue()) {
+                TextView row = new TextView(this);
+                String qty = formatQty(item.qty) + (item.unit == null || item.unit.trim().isEmpty() ? "" : " " + item.unit.trim());
+                String price = item.estimatedPrice == null ? "Pris —" : money.format(item.estimatedPrice);
+                String state = item.checked ? "✓ Kjøpt" : "Ikke kjøpt";
+                row.setText(item.name + "\n" + qty + "  ·  " + price + "  ·  " + state);
+                row.setTextColor(ContextCompat.getColor(this, item.checked ? R.color.pb_muted : R.color.pb_text));
+                row.setTextSize(14);
+                row.setPadding(dp(12), dp(10), dp(12), dp(10));
+                row.setBackgroundResource(R.drawable.bg_card);
+                LinearLayout.LayoutParams rowLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                rowLp.bottomMargin = dp(7);
+                row.setLayoutParams(rowLp);
+                content.addView(row);
+            }
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(trip.listName == null || trip.listName.trim().isEmpty() ? "Handletur" : trip.listName)
+                .setView(scroll)
+                .setPositiveButton("Lukk", null)
+                .show();
     }
 
     private String capitalize(String text) {
