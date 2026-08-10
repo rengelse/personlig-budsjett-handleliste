@@ -1,4 +1,4 @@
-# Personlig Budsjett Handleliste v0.6.6
+# Personlig Budsjett Handleliste v0.6.7
 
 Android-handleappen for **Personlig Budsjett**. Desktop planlegger handlelisten; mobilen mottar den direkte fra Personlig Budsjett over samme lokale Wi-Fi/LAN og brukes under handleturen.
 

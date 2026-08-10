@@ -1110,12 +1110,29 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        new AlertDialog.Builder(this)
+        AlertDialog detailsDialog = new AlertDialog.Builder(this)
                 .setTitle(trip.listName == null || trip.listName.trim().isEmpty() ? "Handletur" : trip.listName)
                 .setView(scroll)
+                .setNegativeButton("Slett", null)
+                .setNeutralButton("Lukk", null)
                 .setPositiveButton("Send til PC", (dialog, which) -> startSendToPc(trip))
-                .setNegativeButton("Lukk", null)
-                .show();
+                .create();
+
+        detailsDialog.setOnShowListener(ignored -> {
+            detailsDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.pb_danger));
+            detailsDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v ->
+                    new AlertDialog.Builder(this)
+                            .setTitle("Slett handletur?")
+                            .setMessage("Er du sikker på at du vil slette denne handleturen?\n\nHandleturen og alle lagrede varer blir permanent slettet.")
+                            .setNegativeButton("Avbryt", null)
+                            .setPositiveButton("Slett", (confirmDialog, which) -> {
+                                store.deleteHistoryTrip(trip.id);
+                                detailsDialog.dismiss();
+                                renderHistory();
+                            })
+                            .show());
+        });
+        detailsDialog.show();
     }
 
     private String capitalize(String text) {

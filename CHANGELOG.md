@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.7
+- Lagt til sletting av fullførte handleturer fra read-only historikkdetaljen.
+- «Slett» ligger helt til venstre, tydelig adskilt fra «Send til PC».
+- Sletting krever eksplisitt bekreftelse med varsel om at handleturen og alle lagrede varer fjernes permanent.
+- Etter bekreftet sletting oppdateres Historikk umiddelbart; tomme måneder forsvinner automatisk.
+- Aktiv handletur og lokal mobiloverføring er uendret.
+
 ## v0.6.6
 - Byttet mobiloverføring fra data-i-QR til lokal HTTP pairing mot Personlig Budsjett Desktop v0.7.3.
 - QR inneholder nå bare `/pb/send/<token>` eller `/pb/receive/<token>` på desktopens lokale IP/port.

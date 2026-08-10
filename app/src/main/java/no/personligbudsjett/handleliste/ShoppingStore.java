@@ -66,6 +66,14 @@ public class ShoppingStore {
         persistTrips(trips, null);
     }
 
+    public void deleteHistoryTrip(String tripId) {
+        if (tripId == null || tripId.trim().isEmpty()) return;
+        List<ShoppingTrip> trips = loadTrips();
+        trips.removeIf(trip -> tripId.equals(trip.id) && trip.isCompleted());
+        String activeId = prefs.getString(KEY_ACTIVE_TRIP_ID, "");
+        persistTrips(trips, activeId);
+    }
+
     private void upsert(List<ShoppingTrip> trips, ShoppingTrip replacement) {
         for (int i = 0; i < trips.size(); i++) {
             if (trips.get(i).id.equals(replacement.id)) {
