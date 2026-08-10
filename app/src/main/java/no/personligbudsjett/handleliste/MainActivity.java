@@ -25,6 +25,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -34,6 +36,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private ShoppingStore store;
+    private ShoppingTrip activeTrip;
     private final List<ShoppingItem> items = new ArrayList<>();
     private String listName = "Handleliste";
     private ShoppingAdapter adapter;
@@ -44,13 +47,19 @@ public class MainActivity extends AppCompatActivity {
     private TextView totalItemsText;
     private TextView openPriceText;
     private TextView expectedTotalText;
+    private TextView actualTotalText;
+    private Button editActualTotalButton;
+    private Button completeTripButton;
     private android.widget.ProgressBar progressBar;
     private android.widget.Button groupStoreButton;
     private android.widget.Button groupCategoryButton;
+    private Button clearDoneButton;
     private boolean groupByStore = true;
+    private boolean hideDone = false;
     private View overviewPanel;
     private TextView overviewStatus;
     private TextView overviewStores;
+    private LinearLayout historyContainer;
     private View settingsPanel;
     private TextView settingsVersionText;
     private android.widget.Button navOverviewButton;
@@ -108,8 +117,11 @@ public class MainActivity extends AppCompatActivity {
         ViewCompat.requestApplyInsets(bottomNav);
 
         store = new ShoppingStore(this);
-        listName = store.getListName();
-        items.addAll(store.loadItems());
+        activeTrip = store.loadActiveTrip();
+        if (activeTrip != null) {
+            listName = activeTrip.listName;
+            items.addAll(activeTrip.items);
+        }
 
         titleText = findViewById(R.id.titleText);
         summaryText = findViewById(R.id.versionText);
@@ -118,13 +130,19 @@ public class MainActivity extends AppCompatActivity {
         totalItemsText = findViewById(R.id.totalItemsText);
         openPriceText = findViewById(R.id.openPriceText);
         expectedTotalText = findViewById(R.id.expectedTotalText);
+        actualTotalText = findViewById(R.id.actualTotalText);
+        editActualTotalButton = findViewById(R.id.editActualTotalButton);
+        completeTripButton = findViewById(R.id.completeTripButton);
         progressBar = findViewById(R.id.progressBar);
         groupStoreButton = findViewById(R.id.groupStoreButton);
         groupCategoryButton = findViewById(R.id.groupCategoryButton);
+        clearDoneButton = findViewById(R.id.clearDoneButton);
         groupByStore = getPreferences(MODE_PRIVATE).getBoolean("group_by_store", true);
+        hideDone = getPreferences(MODE_PRIVATE).getBoolean("hide_done", false);
         overviewPanel = findViewById(R.id.overviewPanel);
         overviewStatus = findViewById(R.id.overviewStatus);
         overviewStores = findViewById(R.id.overviewStores);
+        historyContainer = findViewById(R.id.historyContainer);
         settingsPanel = findViewById(R.id.settingsPanel);
         settingsVersionText = findViewById(R.id.settingsVersionText);
         updateStatusText = findViewById(R.id.updateStatusText);
@@ -153,7 +171,9 @@ public class MainActivity extends AppCompatActivity {
         list.setAdapter(adapter);
 
         findViewById(R.id.addButton).setOnClickListener(v -> showQuickAdd());
-        findViewById(R.id.clearDoneButton).setOnClickListener(v -> clearDone());
+        clearDoneButton.setOnClickListener(v -> clearDone());
+        editActualTotalButton.setOnClickListener(v -> editActualTotal());
+        completeTripButton.setOnClickListener(v -> completeCurrentTrip());
         groupStoreButton.setOnClickListener(v -> setGrouping(true));
         groupCategoryButton.setOnClickListener(v -> setGrouping(false));
         navScanButton.setOnClickListener(v ->
@@ -290,6 +310,7 @@ public class MainActivity extends AppCompatActivity {
         ((View)findViewById(R.id.addButton).getParent()).setVisibility(View.GONE);
         settingsPanel.setVisibility(View.GONE);
         overviewPanel.setVisibility(View.VISIBLE);
+        renderHistory();
         setActiveNav(navOverviewButton);
     }
 
@@ -344,6 +365,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String name = search.getText().toString().trim();
             if (name.isEmpty()) return;
+            ensureActiveTrip();
             ShoppingItem item = new ShoppingItem();
             item.name = name;
             item.qty = 1;
@@ -398,13 +420,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void replaceWith(QrProtocol.Payload payload) {
+        ensureActiveTrip();
         items.clear();
         items.addAll(payload.items);
         listName = payload.listName;
+        activeTrip.listName = listName;
+        activeTrip.actualTotal = null;
         saveAndRender();
+        showList();
     }
 
     private void mergeWith(QrProtocol.Payload payload) {
+        ensureActiveTrip();
         for (ShoppingItem incoming : payload.items) {
             ShoppingItem existing = findMergeTarget(incoming);
             if (existing == null) items.add(incoming);
@@ -416,7 +443,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         listName = payload.listName;
+        activeTrip.listName = listName;
         saveAndRender();
+        showList();
     }
 
     private ShoppingItem findMergeTarget(ShoppingItem incoming) {
@@ -538,7 +567,10 @@ public class MainActivity extends AppCompatActivity {
                 target.unit = String.valueOf(unit.getSelectedItem());
                 target.category = category.getText().toString().trim();
                 if (target.category.isEmpty()) target.category = "Annet";
-                if (isNew) items.add(target);
+                if (isNew) {
+                    ensureActiveTrip();
+                    items.add(target);
+                }
                 saveAndRender();
                 dialog.dismiss();
             });
@@ -587,19 +619,18 @@ public class MainActivity extends AppCompatActivity {
     private void clearDone() {
         long count = items.stream().filter(i -> i.checked).count();
         if (count == 0) return;
-        new AlertDialog.Builder(this)
-                .setTitle("Fjern ferdige varer?")
-                .setMessage(count + " varer fjernes fra listen.")
-                .setPositiveButton("Fjern", (d,w) -> {
-                    items.removeIf(i -> i.checked);
-                    saveAndRender();
-                })
-                .setNegativeButton("Avbryt", null)
-                .show();
+        hideDone = !hideDone;
+        getPreferences(MODE_PRIVATE).edit().putBoolean("hide_done", hideDone).apply();
+        render();
     }
 
     private void saveAndRender() {
-        store.save(listName, items);
+        if (activeTrip != null) {
+            activeTrip.listName = listName;
+            activeTrip.items.clear();
+            activeTrip.items.addAll(items);
+            store.saveActiveTrip(activeTrip);
+        }
         render();
     }
 
@@ -632,6 +663,9 @@ public class MainActivity extends AppCompatActivity {
         totalItemsText.setText("Totalt " + items.size() + (items.size()==1 ? " vare" : " varer"));
         openPriceText.setText(hasAnyPrice ? money.format(openTotal) : "—");
         expectedTotalText.setText(hasAnyPrice ? money.format(expectedTotal) : "—");
+        actualTotalText.setText(activeTrip != null && activeTrip.actualTotal != null ? money.format(activeTrip.actualTotal) : "—");
+        editActualTotalButton.setEnabled(activeTrip != null && !items.isEmpty());
+        completeTripButton.setEnabled(activeTrip != null && !items.isEmpty());
 
         groupStoreButton.setBackgroundResource(groupByStore ? R.drawable.bg_chip_active : R.drawable.bg_chip);
         groupCategoryButton.setBackgroundResource(groupByStore ? R.drawable.bg_chip : R.drawable.bg_chip_active);
@@ -655,10 +689,12 @@ public class MainActivity extends AppCompatActivity {
 
         List<ShoppingItem> done = new ArrayList<>();
         for (ShoppingItem item : items) if (item.checked) done.add(item);
-        if (!done.isEmpty()) {
+        if (!done.isEmpty() && !hideDone) {
             headers.add("Ferdig (" + done.size() + ")");
             groups.add(done);
         }
+        clearDoneButton.setText(hideDone ? "Vis handlet" : "Skjul handlet");
+        clearDoneButton.setEnabled(!done.isEmpty());
 
         java.util.Set<String> storeSet = new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         int missingPrice = 0;
@@ -671,18 +707,148 @@ public class MainActivity extends AppCompatActivity {
             }
             if (item.estimatedPrice == null) missingPrice++;
         }
-        overviewStatus.setText(doneCount + " av " + items.size() + " handlet\n" +
-                "Forventet totalpris: " + (hasAnyPrice ? money.format(expectedTotal) : "—") + "\n" +
-                "Gjenstår: " + (hasAnyPrice ? money.format(openTotal) : "—") + "\n" +
-                "Mangler pris: " + missingPrice);
-        StringBuilder storeInfo = new StringBuilder("Butikker: " + storeSet.size());
-        for (java.util.Map.Entry<String,Double> e : storeTotals.entrySet()) {
-            storeInfo.append("\n").append(e.getKey()).append("  ·  ").append(money.format(e.getValue()));
-        }
-        overviewStores.setText(storeInfo.toString());
+        overviewStatus.setText("Historikk over fullførte handleturer");
+        overviewStores.setText("Aktiv tur: " + (activeTrip == null ? "Ingen" : listName));
 
         adapter.setGroupingByStore(groupByStore);
         adapter.setRows(headers, groups);
+    }
+
+    private void ensureActiveTrip() {
+        if (activeTrip != null) return;
+        activeTrip = new ShoppingTrip();
+        activeTrip.listName = listName;
+        store.saveActiveTrip(activeTrip);
+    }
+
+    private void editActualTotal() {
+        if (activeTrip == null) return;
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        input.setHint("0,00");
+        if (activeTrip.actualTotal != null) input.setText(String.format(Locale.US, "%.2f", activeTrip.actualTotal).replace('.', ','));
+        input.setSelectAllOnFocus(true);
+        int pad = dp(20);
+        LinearLayout wrapper = new LinearLayout(this);
+        wrapper.setPadding(pad, 0, pad, 0);
+        wrapper.addView(input, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Faktisk totalpris")
+                .setMessage("Skriv inn beløpet du faktisk betalte.")
+                .setView(wrapper)
+                .setPositiveButton("Lagre", null)
+                .setNegativeButton("Avbryt", null)
+                .create();
+        dialog.setOnShowListener(v -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v2 -> {
+            String raw = input.getText().toString().trim();
+            if (raw.isEmpty()) {
+                activeTrip.actualTotal = null;
+            } else {
+                double value = parse(raw);
+                if (value < 0) { input.setError("Ugyldig beløp"); return; }
+                activeTrip.actualTotal = value;
+            }
+            saveAndRender();
+            dialog.dismiss();
+        }));
+        dialog.show();
+    }
+
+    private void completeCurrentTrip() {
+        if (activeTrip == null || items.isEmpty()) return;
+        NumberFormat money = NumberFormat.getCurrencyInstance(new Locale("nb", "NO"));
+        double expected = activeTrip.expectedTotal();
+        String actual = activeTrip.actualTotal == null ? "Ikke registrert" : money.format(activeTrip.actualTotal);
+        new AlertDialog.Builder(this)
+                .setTitle("Fullfør handletur?")
+                .setMessage("Forventet: " + money.format(expected) + "\nFaktisk: " + actual +
+                        "\n\nTuren flyttes til historikken. Varer og kjøpt-status beholdes.")
+                .setPositiveButton("Fullfør", (d, w) -> {
+                    activeTrip.items.clear();
+                    activeTrip.items.addAll(items);
+                    activeTrip.listName = listName;
+                    activeTrip.completedAt = System.currentTimeMillis();
+                    store.completeTrip(activeTrip);
+                    activeTrip = null;
+                    items.clear();
+                    listName = "Handleliste";
+                    render();
+                    showOverview();
+                })
+                .setNegativeButton("Avbryt", null)
+                .show();
+    }
+
+    private void renderHistory() {
+        if (historyContainer == null) return;
+        historyContainer.removeAllViews();
+        List<ShoppingTrip> history = store.loadHistory();
+        if (history.isEmpty()) {
+            TextView empty = new TextView(this);
+            empty.setText("Ingen fullførte handleturer ennå.");
+            empty.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
+            empty.setTextSize(15);
+            empty.setPadding(0, dp(18), 0, dp(18));
+            historyContainer.addView(empty);
+            return;
+        }
+
+        SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", new Locale("nb", "NO"));
+        SimpleDateFormat dayFormat = new SimpleDateFormat("d. MMMM", new Locale("nb", "NO"));
+        NumberFormat money = NumberFormat.getCurrencyInstance(new Locale("nb", "NO"));
+        String currentMonth = "";
+
+        for (ShoppingTrip trip : history) {
+            long when = trip.completedAt == null ? trip.createdAt : trip.completedAt;
+            String month = capitalize(monthFormat.format(new Date(when)));
+            if (!month.equals(currentMonth)) {
+                currentMonth = month;
+                TextView monthTitle = new TextView(this);
+                monthTitle.setText(month);
+                monthTitle.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+                monthTitle.setTextSize(18);
+                monthTitle.setTypeface(monthTitle.getTypeface(), android.graphics.Typeface.BOLD);
+                monthTitle.setPadding(0, dp(18), 0, dp(8));
+                historyContainer.addView(monthTitle);
+            }
+
+            LinearLayout card = new LinearLayout(this);
+            card.setOrientation(LinearLayout.VERTICAL);
+            card.setBackgroundResource(R.drawable.bg_card);
+            card.setPadding(dp(16), dp(14), dp(16), dp(14));
+            LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            cardLp.bottomMargin = dp(10);
+            card.setLayoutParams(cardLp);
+
+            TextView heading = new TextView(this);
+            heading.setText(dayFormat.format(new Date(when)) + "  ·  " + trip.listName);
+            heading.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+            heading.setTextSize(16);
+            heading.setTypeface(heading.getTypeface(), android.graphics.Typeface.BOLD);
+            card.addView(heading);
+
+            long checked = trip.items.stream().filter(item -> item.checked).count();
+            TextView details = new TextView(this);
+            String expected = money.format(trip.expectedTotal());
+            String actual = trip.actualTotal == null ? "—" : money.format(trip.actualTotal);
+            String deviation = "";
+            if (trip.actualTotal != null) {
+                double diff = trip.actualTotal - trip.expectedTotal();
+                deviation = "\nAvvik: " + (diff > 0 ? "+" : "") + money.format(diff);
+            }
+            details.setText(checked + " av " + trip.items.size() + " kjøpt\nForventet: " + expected + "\nFaktisk: " + actual + deviation);
+            details.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
+            details.setTextSize(14);
+            details.setPadding(0, dp(6), 0, 0);
+            card.addView(details);
+            historyContainer.addView(card);
+        }
+    }
+
+    private String capitalize(String text) {
+        if (text == null || text.isEmpty()) return "";
+        return text.substring(0, 1).toUpperCase(new Locale("nb", "NO")) + text.substring(1);
     }
 
     private String groupKey(ShoppingItem item) {

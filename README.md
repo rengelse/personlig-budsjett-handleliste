@@ -1,30 +1,25 @@
-# v0.4.2 – Innstillinger og bunnnavigasjon
+# Personlig Budsjett – Handleliste Android v0.6.0
 
-- Ny Innstillinger-fane i bunnnavigasjonen.
-- Bunnnavigasjon: Oversikt · Handleliste · Skann QR · Innstillinger.
-- Versjonsnummer hentes dynamisk fra BuildConfig.
-- Innstillinger har eget område for Om appen og Oppdateringer.
-- Oppdateringsmotor kobles på i neste steg.
+Android-handleappen for **Personlig Budsjett**. Desktopappen planlegger og genererer handlelisten; mobilappen mottar listen via PB1-QR og brukes under selve handleturen.
 
-# Personlig Budsjett – Handleliste Android v0.4.0
+## v0.6.0
 
-## Nytt
-- Ekte **Oversikt**-skjerm med fremdrift, forventet totalpris, gjenstående beløp, manglende priser og butikkoversikt.
-- **Handleliste** er egen navigerbar hovedvisning.
-- **Skann QR** beholdes som tredje hovedhandling.
-- **Legg til vare** har nå Mest brukt, Nylig brukt og manuelt varenavn.
-- Bruksfrekvens lagres lokalt på telefonen.
-- Tannhjulet er fjernet.
-- Versjonsnummer vises direkte under «Handleliste».
-- Android WindowInsets-fiksen fra v0.3.1 beholdes.
-- PB1-format og eksisterende handlelistedata beholdes.
+- Aktiv handleliste lagres som en **handletur**.
+- Forventet totalpris fra desktop beholdes separat fra manuelt registrert **faktisk totalpris**.
+- Handleturen kan fullføres og flyttes til lokal **Historikk**.
+- Historikken grupperes etter måned og dato og viser forventet/faktisk pris og avvik.
+- Kjøpte varer kan skjules uten å slettes, slik at varedata og kjøpt-status bevares for senere retur til desktopappen.
+- Eksisterende v0.5.2-data migreres automatisk til den nye modellen.
+- PB1-format og eksisterende QR-import er uendret.
+
+## Distribusjon
+
+GitHub Actions bygger en permanent signert release-APK. Ved tagger på formen `mobile-v*` publiseres APK-en som GitHub Release asset med stabilt navn:
+
+`handleliste.apk`
+
+Update engine i appen sjekker Latest Release og kan laste ned denne APK-en. Alle release-builds må signeres med samme permanente signing key.
 
 ## Release-signering
 
-Fra v0.4.4 bygges GitHub Release-APK med `assembleRelease` og en permanent signing key lagret som GitHub Actions Secrets. Selve `.jks`-filen skal aldri committes til repoet. Workflowen publiserer fortsatt APK-en med stabilt navn `handleliste.apk`.
-
-
-
-## Oppdateringer
-
-Fra v0.4.5 sjekker appen GitHub Releases automatisk og kan laste ned `handleliste.apk`. Android viser fortsatt sin systembekreftelse før APK-en installeres. Release-builds må signeres med samme permanente nøkkel.
+Signing key lagres som GitHub Actions Secrets. Selve `.jks`-filen skal aldri committes til repositoryet.

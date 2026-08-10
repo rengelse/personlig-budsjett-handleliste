@@ -1,3 +1,14 @@
+# v0.6.0 – Handleturer og historikk
+
+- Innfører en egen handleturmodell med stabil ID, opprettet tidspunkt og fullført tidspunkt.
+- Skiller forventet totalpris fra faktisk totalpris.
+- Faktisk total kan registreres manuelt før eller under fullføring.
+- Fullførte handleturer lagres lokalt og vises i Historikk gruppert etter måned og dato.
+- Historikken viser kjøpt-status, forventet total, faktisk total og avvik.
+- «Fjern handlet» er endret til Skjul/Vis handlet slik at kjøpte varer ikke slettes fra turdataene.
+- v0.5.2-lagring migreres automatisk til ny handleturmodell.
+- PB1 og QR-import beholdes uendret. Retur-QR til desktop er ikke implementert ennå.
+
 # v0.5.2 – Forbedret Innstillinger
 
 - Slår sammen «Om appen» og «Oppdateringer» til ett kompakt kort.

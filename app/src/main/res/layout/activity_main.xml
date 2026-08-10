@@ -154,6 +154,54 @@
                         android:textSize="17sp"
                         android:textStyle="bold"/>
                 </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Faktisk totalpris"
+                        android:textColor="@color/pb_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/actualTotalText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="@color/pb_text"
+                        android:textSize="17sp"
+                        android:textStyle="bold"/>
+
+                    <Button
+                        android:id="@+id/editActualTotalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="42dp"
+                        android:layout_marginLeft="10dp"
+                        android:background="@drawable/bg_secondary"
+                        android:text="Endre"
+                        android:textAllCaps="false"
+                        android:textColor="@color/pb_text"
+                        android:textStyle="bold"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/completeTripButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_primary"
+                    android:text="Fullfør handletur"
+                    android:textAllCaps="false"
+                    android:textColor="@color/pb_primary_text"
+                    android:textStyle="bold"/>
             </LinearLayout>
 
             <LinearLayout
@@ -201,18 +249,50 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Oversikt" android:textColor="@color/pb_text" android:textSize="25sp" android:textStyle="bold"/>
-            <TextView android:id="@+id/overviewStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="12dp" android:background="@drawable/bg_progress_card" android:padding="16dp"
-                android:textColor="@color/pb_text" android:textSize="16sp"/>
-            <TextView android:id="@+id/overviewStores" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="12dp" android:background="@drawable/bg_card" android:padding="16dp"
-                android:textColor="@color/pb_text" android:textSize="15sp"/>
-            <Button android:id="@+id/continueShoppingButton" android:layout_width="match_parent" android:layout_height="54dp"
-                android:layout_marginTop="14dp" android:background="@drawable/bg_primary"
-                android:text="Fortsett handleliste" android:textAllCaps="false"
-                android:textColor="@color/pb_primary_text" android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Historikk"
+                android:textColor="@color/pb_text"
+                android:textSize="25sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/overviewStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Fullførte handleturer sortert etter måned"
+                android:textColor="@color/pb_muted"
+                android:textSize="14sp"/>
+
+            <TextView
+                android:id="@+id/overviewStores"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_progress_card"
+                android:padding="14dp"
+                android:textColor="@color/pb_text"
+                android:textSize="14sp"/>
+
+            <LinearLayout
+                android:id="@+id/historyContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+
+            <Button
+                android:id="@+id/continueShoppingButton"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_primary"
+                android:text="Til handlelisten"
+                android:textAllCaps="false"
+                android:textColor="@color/pb_primary_text"
+                android:textStyle="bold"/>
         </LinearLayout>
     </ScrollView>
 
@@ -362,7 +442,7 @@
             android:layout_height="52dp"
             android:layout_weight="1"
             android:background="@drawable/bg_danger"
-            android:text="⌫  Fjern handlet"
+            android:text="Skjul handlet"
             android:textAllCaps="false"
             android:textColor="@color/pb_danger"
             android:textStyle="bold"/>
@@ -382,8 +462,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:text="⌂
-Oversikt"
+            android:text="◷
+Historikk"
             android:textAllCaps="false"
             android:textColor="@color/pb_muted"
             android:textSize="12sp"/>
