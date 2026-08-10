@@ -1,20 +1,19 @@
-## Personlig Budsjett Handleliste v0.6.2
+## Personlig Budsjett Handleliste v0.6.3
 
-Denne versjonen innfører første del av returflyten fra mobilappen tilbake til Personlig Budsjett på PC.
+Denne versjonen klargjør QR-returen for presis kobling tilbake til Personlig Budsjett på PC.
 
 ### Nytt
-- Åpne en fullført handletur i **Historikk** og velg **Send til Personlig Budsjett**.
-- Appen genererer en QR-kode med den fullførte handleturen.
-- Ny separat **PB2-protokoll** for Android → Personlig Budsjett Desktop.
-- Retur-QR inneholder stabil handletur-ID, dato/tid, forventet totalpris og faktisk totalpris når denne er registrert.
-- Bare varer som faktisk er markert **Kjøpt** sendes tilbake. Ikke-kjøpte varer blir ikke registrert som kjøp ved en senere desktopimport.
-- Varedata inkluderer navn, mengde, enhet, kategori, forventet pris, butikk og EAN når dette finnes.
-- PB2 bruker GZIP + Base64 URL-safe og kompakte feltnavn for å holde QR-koden så liten som mulig.
+- PB1 kan nå motta og bevare stabil ID for handlelisten fra desktop.
+- PB1 kan nå motta og bevare stabil ID for hver varelinje fra desktop.
+- PB2 sender `sid` for opprinnelig handleliste når identiteten er entydig.
+- PB2 sender `li` for kjøpte varelinjer når original ID finnes.
+- PB2 sender nå valuta (`NOK`).
+- Datamodellen støtter valgfri faktisk pris per vare for senere bruk.
 
-### Viktig
-Personlig Budsjett Desktop må få støtte for å lese PB2 før QR-koden kan importeres på PC. Denne versjonen implementerer Android-siden av returflyten.
+### Sikrere sammenslåing
+Når PB1 inneholder stabile varelinje-ID-er, brukes disse først ved sammenslåing. To forskjellige varelinjer blir derfor ikke lenger slått sammen bare fordi de har samme navn eller EAN.
 
-### Uendret
-- PB1-import fra Personlig Budsjett til mobilappen er uendret.
-- Historikk og fullførte handleturer beholdes lokalt.
-- Update engine og GitHub Release-flyten er beholdt.
+Hvis en aktiv handletur slås sammen fra forskjellige desktop-lister, utelates toppnivå-ID-en i retur-QR i stedet for å sende en feil kobling.
+
+### Kompatibilitet
+Eksisterende PB1-koder uten ID-felter fungerer fortsatt som før. PB1-formatet er ikke brutt; ID-feltene er valgfrie tillegg til versjon 1.

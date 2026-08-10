@@ -3,7 +3,6 @@ package no.personligbudsjett.handleliste;
 import android.util.Base64;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
@@ -11,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
 public final class QrProtocol {
@@ -18,6 +18,7 @@ public final class QrProtocol {
 
     public static final class Payload {
         public String listName = "Handleliste";
+        public String sourceListId = "";
         public final List<ShoppingItem> items = new ArrayList<>();
     }
 
@@ -44,6 +45,9 @@ public final class QrProtocol {
 
         Payload p = new Payload();
         p.listName = root.optString("list", "Handleliste");
+        // PB1 v1 remains backwards compatible. `id` is the canonical new source-list identity;
+        // aliases are accepted so desktop can migrate without breaking older mobile builds.
+        p.sourceListId = firstNonEmpty(root.optString("id", ""), root.optString("listId", ""), root.optString("sid", ""));
         JSONArray arr = root.optJSONArray("items");
         if (arr == null) throw new IllegalArgumentException("QR-koden mangler varer");
 
@@ -51,10 +55,22 @@ public final class QrProtocol {
             JSONObject o = arr.optJSONObject(n);
             if (o == null) continue;
             ShoppingItem item = ShoppingItem.fromJson(o);
+            // PB1 item `id` belongs to desktop. Keep a separate local UUID so mobile identity and
+            // source identity never become coupled accidentally.
+            item.sourceItemId = firstNonEmpty(o.optString("id", ""), o.optString("itemId", ""), o.optString("li", ""));
+            item.id = UUID.randomUUID().toString();
+            item.actualPrice = null; // PB1 carries planned/expected data, never actual purchase price.
             if (!item.name.isEmpty()) p.items.add(item);
         }
         if (p.items.isEmpty()) throw new IllegalArgumentException("Handlelisten er tom");
         return p;
+    }
+
+    private static String firstNonEmpty(String... values) {
+        for (String value : values) {
+            if (value != null && !value.trim().isEmpty()) return value.trim();
+        }
+        return "";
     }
 
     private static String gunzip(byte[] input) throws Exception {

@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.6.3
+- La til stabil `sourceListId` fra PB1 og `sid` i PB2.
+- La til stabil `sourceItemId` fra PB1 og `li` per kjøpt vare i PB2.
+- La til `cur: NOK` i PB2.
+- La til valgfri `actualPrice` / `ap` i datamodell og PB2-protokoll.
+- Bevarer kilde-ID-er gjennom lokal lagring, redigering, fullføring og historikk.
+- Sikrere merge: PB1-linjer med ulik stabil ID slås ikke sammen på navn/EAN.
+- Ved merge av forskjellige kildelister utelates toppnivå `sid` fremfor å sende feil identitet.
+- Eldre PB1 uten ID-er er fortsatt bakoverkompatibel.
+
 ## v0.6.2
 - Fullførte handleturer kan nå generere retur-QR via «Send til Personlig Budsjett».
 - Ny separat PB2-protokoll for Android → desktop.

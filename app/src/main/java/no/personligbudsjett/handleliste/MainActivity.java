@@ -433,6 +433,8 @@ public class MainActivity extends AppCompatActivity {
         items.addAll(payload.items);
         listName = payload.listName;
         activeTrip.listName = listName;
+        activeTrip.sourceListId = payload.sourceListId;
+        activeTrip.sourceIdentityMixed = false;
         activeTrip.actualTotal = null;
         saveAndRender();
         showList();
@@ -452,11 +454,34 @@ public class MainActivity extends AppCompatActivity {
         }
         listName = payload.listName;
         activeTrip.listName = listName;
+        mergeSourceIdentity(payload.sourceListId);
         saveAndRender();
         showList();
     }
 
+    private void mergeSourceIdentity(String incomingSourceListId) {
+        String incoming = incomingSourceListId == null ? "" : incomingSourceListId.trim();
+        if (incoming.isEmpty() || activeTrip.sourceIdentityMixed) return;
+        String current = activeTrip.sourceListId == null ? "" : activeTrip.sourceListId.trim();
+        if (current.isEmpty()) {
+            activeTrip.sourceListId = incoming;
+        } else if (!current.equals(incoming)) {
+            // A trip merged from different desktop lists cannot truthfully expose one top-level sid.
+            activeTrip.sourceListId = "";
+            activeTrip.sourceIdentityMixed = true;
+        }
+    }
+
     private ShoppingItem findMergeTarget(ShoppingItem incoming) {
+        String sourceId = incoming.sourceItemId == null ? "" : incoming.sourceItemId.trim();
+        if (!sourceId.isEmpty()) {
+            for (ShoppingItem existing : items) {
+                String existingSourceId = existing.sourceItemId == null ? "" : existing.sourceItemId.trim();
+                if (sourceId.equals(existingSourceId)) return existing;
+            }
+            // Preserve exact desktop line identity instead of merging two distinct PB1 lines by name/EAN.
+            return null;
+        }
         for (ShoppingItem existing : items) {
             if (!incoming.ean.isEmpty() && incoming.ean.equals(existing.ean)) return existing;
             if (incoming.name.equalsIgnoreCase(existing.name) &&
@@ -1004,7 +1029,7 @@ public class MainActivity extends AppCompatActivity {
             content.setPadding(dp(18), dp(8), dp(18), dp(8));
 
             TextView help = new TextView(this);
-            help.setText("Åpne Personlig Budsjett på PC og skann denne QR-koden. Den inneholder hele den fullførte handleturen og hvilke varer som faktisk ble kjøpt.");
+            help.setText("Åpne Personlig Budsjett på PC og skann denne QR-koden. Den inneholder identiteten til handleturen, summer og varene som faktisk ble kjøpt.");
             help.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
             help.setTextSize(14);
             help.setPadding(0, 0, 0, dp(12));

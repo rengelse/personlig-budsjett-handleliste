@@ -12,6 +12,10 @@ public class ShoppingItem {
     public String unit = "";
     public String category = "Annet";
     public Double estimatedPrice = null;
+    // Stable identity from the originating PB1 line, when supplied by desktop.
+    public String sourceItemId = "";
+    // Actual unit/line price is optional and must only be set when it is genuinely known.
+    public Double actualPrice = null;
     public String store = "";
     public String ean = "";
     public boolean checked = false;
@@ -24,6 +28,8 @@ public class ShoppingItem {
         o.put("unit", unit);
         o.put("category", category);
         if (estimatedPrice != null) o.put("price", estimatedPrice);
+        if (sourceItemId != null && !sourceItemId.trim().isEmpty()) o.put("sourceItemId", sourceItemId);
+        if (actualPrice != null) o.put("actualPrice", actualPrice);
         o.put("store", store);
         o.put("ean", ean);
         o.put("checked", checked);
@@ -39,6 +45,8 @@ public class ShoppingItem {
         i.category = o.optString("category", "Annet").trim();
         if (i.category.isEmpty()) i.category = "Annet";
         if (o.has("price") && !o.isNull("price")) i.estimatedPrice = o.optDouble("price");
+        i.sourceItemId = o.optString("sourceItemId", "").trim();
+        if (o.has("actualPrice") && !o.isNull("actualPrice")) i.actualPrice = o.optDouble("actualPrice");
         i.store = o.optString("store", "").trim();
         i.ean = o.optString("ean", "").trim();
         i.checked = o.optBoolean("checked", false);

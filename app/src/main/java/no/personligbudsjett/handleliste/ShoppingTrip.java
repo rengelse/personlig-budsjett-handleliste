@@ -11,6 +11,10 @@ import java.util.UUID;
 public class ShoppingTrip {
     public String id = UUID.randomUUID().toString();
     public String listName = "Handleliste";
+    // Stable identity of the PB1 list received from desktop, when supplied.
+    public String sourceListId = "";
+    // True if the active trip has been merged from different source-list identities.
+    public boolean sourceIdentityMixed = false;
     public long createdAt = System.currentTimeMillis();
     public Long completedAt = null;
     public Double actualTotal = null;
@@ -31,6 +35,8 @@ public class ShoppingTrip {
         JSONObject o = new JSONObject();
         o.put("id", id);
         o.put("listName", listName == null ? "Handleliste" : listName);
+        if (sourceListId != null && !sourceListId.trim().isEmpty()) o.put("sourceListId", sourceListId);
+        if (sourceIdentityMixed) o.put("sourceIdentityMixed", true);
         o.put("createdAt", createdAt);
         if (completedAt != null) o.put("completedAt", completedAt);
         if (actualTotal != null) o.put("actualTotal", actualTotal);
@@ -44,6 +50,8 @@ public class ShoppingTrip {
         ShoppingTrip trip = new ShoppingTrip();
         trip.id = o.optString("id", UUID.randomUUID().toString());
         trip.listName = o.optString("listName", "Handleliste");
+        trip.sourceListId = o.optString("sourceListId", "").trim();
+        trip.sourceIdentityMixed = o.optBoolean("sourceIdentityMixed", false);
         trip.createdAt = o.optLong("createdAt", System.currentTimeMillis());
         if (o.has("completedAt") && !o.isNull("completedAt")) trip.completedAt = o.optLong("completedAt");
         if (o.has("actualTotal") && !o.isNull("actualTotal")) trip.actualTotal = o.optDouble("actualTotal");
