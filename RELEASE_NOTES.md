@@ -1,19 +1,20 @@
-## Personlig Budsjett Handleliste v0.6.1
+## Personlig Budsjett Handleliste v0.6.2
 
-Denne versjonen gjør historikken mer oversiktlig og lar deg åpne en fullført handletur uten å kunne endre den.
+Denne versjonen innfører første del av returflyten fra mobilappen tilbake til Personlig Budsjett på PC.
 
 ### Nytt
-- Historikken grupperes fortsatt per måned, men månedene er nå **kollapsbare**.
-- **Inneværende måned er åpen som standard**, eldre måneder er lukket.
-- Månedshodet viser antall handleturer og en samlet prisoppsummering.
-- Trykk på en fullført handletur for å åpne en **read-only detaljvisning**.
-- Detaljvisningen viser dato/tid, kjøpt-status, forventet/faktisk total, avvik og alle varer gruppert etter butikk.
-- Historiske varer kan ikke redigeres eller markeres på nytt.
+- Åpne en fullført handletur i **Historikk** og velg **Send til Personlig Budsjett**.
+- Appen genererer en QR-kode med den fullførte handleturen.
+- Ny separat **PB2-protokoll** for Android → Personlig Budsjett Desktop.
+- Retur-QR inneholder stabil handletur-ID, dato/tid, forventet totalpris og faktisk totalpris når denne er registrert.
+- Bare varer som faktisk er markert **Kjøpt** sendes tilbake. Ikke-kjøpte varer blir ikke registrert som kjøp ved en senere desktopimport.
+- Varedata inkluderer navn, mengde, enhet, kategori, forventet pris, butikk og EAN når dette finnes.
+- PB2 bruker GZIP + Base64 URL-safe og kompakte feltnavn for å holde QR-koden så liten som mulig.
 
-### Videre retning
-Detaljvisningen er fundamentet for en senere **Send til Personlig Budsjett**-funksjon med retur-QR. Ingen returprotokoll er innført i v0.6.1.
+### Viktig
+Personlig Budsjett Desktop må få støtte for å lese PB2 før QR-koden kan importeres på PC. Denne versjonen implementerer Android-siden av returflyten.
 
 ### Uendret
-- PB1-importen er uendret.
-- Handleturdata og kjøpt-status beholdes etter fullføring.
+- PB1-import fra Personlig Budsjett til mobilappen er uendret.
+- Historikk og fullførte handleturer beholdes lokalt.
 - Update engine og GitHub Release-flyten er beholdt.

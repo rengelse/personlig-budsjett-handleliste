@@ -1,8 +1,8 @@
-# Personlig Budsjett – Handleliste Android v0.6.1
+# Personlig Budsjett – Handleliste Android v0.6.2
 
 Android-handleappen for **Personlig Budsjett**. Desktopappen planlegger og genererer handlelisten; mobilappen mottar listen via PB1-QR og brukes under selve handleturen.
 
-## v0.6.1
+## v0.6.2
 
 - Aktiv handleliste lagres som en **handletur**.
 - Forventet totalpris fra desktop beholdes separat fra manuelt registrert **faktisk totalpris**.
@@ -11,6 +11,9 @@ Android-handleappen for **Personlig Budsjett**. Desktopappen planlegger og gener
 - Kjøpte varer kan skjules uten å slettes, slik at varedata og kjøpt-status bevares for senere retur til desktopappen.
 - Eksisterende v0.5.2-data migreres automatisk til den nye modellen.
 - PB1-format og eksisterende QR-import er uendret.
+
+- Fullførte handleturer kan åpnes fra Historikk og sendes tilbake som **PB2-retur-QR**.
+- Retur-QR sender bare varer som faktisk er markert kjøpt, sammen med forventet/faktisk totalsum og handletur-ID.
 
 ## Distribusjon
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.2
+- Fullførte handleturer kan nå generere retur-QR via «Send til Personlig Budsjett».
+- Ny separat PB2-protokoll for Android → desktop.
+- PB2 inneholder handletur-ID, tidspunkt, forventet/faktisk total og bare varer som faktisk er markert kjøpt.
+- Returdata komprimeres med GZIP og Base64 URL-safe for å holde QR-koden kompakt.
+- PB1-importen er uendret.
+
 ## v0.6.1
 - Kollapsbare måneder i Historikk; inneværende måned åpen som standard.
 - Fullførte handleturer kan åpnes med vanlig trykk.

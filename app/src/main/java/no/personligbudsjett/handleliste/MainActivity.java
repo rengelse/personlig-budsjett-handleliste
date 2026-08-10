@@ -2,6 +2,8 @@ package no.personligbudsjett.handleliste;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Build;
 import android.widget.Button;
@@ -12,6 +14,7 @@ import android.text.InputType;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -24,6 +27,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.common.BitMatrix;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -982,8 +989,66 @@ public class MainActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle(trip.listName == null || trip.listName.trim().isEmpty() ? "Handletur" : trip.listName)
                 .setView(scroll)
-                .setPositiveButton("Lukk", null)
+                .setPositiveButton("Send til Personlig Budsjett", (dialog, which) -> showReturnQr(trip))
+                .setNegativeButton("Lukk", null)
                 .show();
+    }
+
+    private void showReturnQr(ShoppingTrip trip) {
+        try {
+            String payload = ReturnQrProtocol.encode(trip);
+            Bitmap qr = createQrBitmap(payload, 900);
+
+            LinearLayout content = new LinearLayout(this);
+            content.setOrientation(LinearLayout.VERTICAL);
+            content.setPadding(dp(18), dp(8), dp(18), dp(8));
+
+            TextView help = new TextView(this);
+            help.setText("Åpne Personlig Budsjett på PC og skann denne QR-koden. Den inneholder hele den fullførte handleturen og hvilke varer som faktisk ble kjøpt.");
+            help.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+            help.setTextSize(14);
+            help.setPadding(0, 0, 0, dp(12));
+            content.addView(help);
+
+            ImageView image = new ImageView(this);
+            image.setImageBitmap(qr);
+            image.setAdjustViewBounds(true);
+            image.setContentDescription("Retur-QR til Personlig Budsjett");
+            content.addView(image, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
+
+            TextView note = new TextView(this);
+            long purchasedCount = trip.items.stream().filter(item -> item.checked).count();
+            note.setText("Returformat: PB2 · " + purchasedCount + " kjøpte varer");
+            note.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
+            note.setTextSize(12);
+            note.setPadding(0, dp(10), 0, 0);
+            content.addView(note);
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Send til Personlig Budsjett")
+                    .setView(content)
+                    .setPositiveButton("Lukk", null)
+                    .show();
+        } catch (Exception e) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Kunne ikke lage QR-kode")
+                    .setMessage(e.getMessage() == null ? "Ukjent feil" : e.getMessage())
+                    .setPositiveButton("OK", null)
+                    .show();
+        }
+    }
+
+    private Bitmap createQrBitmap(String value, int size) throws Exception {
+        BitMatrix matrix = new MultiFormatWriter().encode(value, BarcodeFormat.QR_CODE, size, size);
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                bitmap.setPixel(x, y, matrix.get(x, y) ? Color.BLACK : Color.WHITE);
+            }
+        }
+        return bitmap;
     }
 
     private String capitalize(String text) {
