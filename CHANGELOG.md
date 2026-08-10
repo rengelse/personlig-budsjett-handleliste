@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.5
+- Added compact PB1 v2 decoding for Desktop v0.7.2.
+- Added compact PB2 v2 return format with preserved desktop list/item identities.
+- PB2 v2 returns only purchased items and optional actual total.
+- PB2 v2 item price is emitted only when actual item price is known.
+- Kept PB1 v1 input and PB2 v1 historical fallback compatibility.
+
 ## v0.6.4
 - Forbedret QR-skanning av tettere PB1-koder med stabile UUID-er fra desktop.
 - CameraX analyserer nå QR-bildet i høyere oppløsning (mål 1920×1080) for bedre ML Kit-dekoding.

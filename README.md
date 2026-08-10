@@ -1,32 +1,29 @@
-# Personlig Budsjett – Handleliste Android v0.6.4
+# Personlig Budsjett Handleliste v0.6.5
 
-Android-handleappen for **Personlig Budsjett**. Desktopappen planlegger og genererer handlelisten; mobilappen mottar listen via PB1-QR og brukes under selve handleturen.
+Android-handleappen for **Personlig Budsjett**. Desktop planlegger handlelisten; mobilen mottar den via QR og brukes under handleturen.
 
-## v0.6.4
+## QR-protokoll
 
-- Aktiv handleliste lagres som en **handletur**.
-- Forventet totalpris fra desktop beholdes separat fra manuelt registrert **faktisk totalpris**.
-- Handleturen kan fullføres og flyttes til lokal **Historikk**.
-- Historikken grupperes etter måned og dato og viser forventet/faktisk pris og avvik.
-- Kjøpte varer kan skjules uten å slettes, slik at varedata og kjøpt-status bevares for senere retur til desktopappen.
-- Eksisterende v0.5.2-data migreres automatisk til den nye modellen.
-- PB1 v1 er bakoverkompatibel; stabile liste-/varelinje-ID-er er lagt til som valgfrie felt for presis retur til desktop.
+v0.6.5 bruker den kompakte **PB v2**-kontrakten sammen med Personlig Budsjett Desktop v0.7.2:
 
-- Fullførte handleturer kan åpnes fra Historikk og sendes tilbake som **PB2-retur-QR**.
-- Retur-QR sender bare varer som faktisk er markert kjøpt, sammen med forventet/faktisk totalsum og handletur-ID.
+- `PB1:` Desktop -> Android
+- `PB2:` Android -> Desktop
+- UTF-8 JSON -> GZIP -> Base64URL uten påkrevd padding
+- korte stabile liste- og varelinje-ID-er bevares uendret gjennom hele handleturen
+- PB2 returnerer bare varer som faktisk er kjøpt
+- faktisk totalsum returneres når brukeren har registrert den
+- faktisk varepris returneres bare dersom mobilen faktisk kjenner den
 
-## Distribusjon
+Android kan fortsatt lese PB1 v1. Eldre historiske turer uten komplett v2-identitet kan fortsatt returneres som PB2 v1, som Desktop v0.7.2 støtter.
 
-GitHub Actions bygger en permanent signert release-APK. Ved tagger på formen `mobile-v*` publiseres APK-en som GitHub Release asset med stabilt navn:
+Se `QR_PROTOCOL.md` for feltkontrakten.
 
-`handleliste.apk`
+## Handleturer og historikk
 
-Update engine i appen sjekker Latest Release og kan laste ned denne APK-en. Alle release-builds må signeres med samme permanente signing key.
+Den aktive handlelisten lagres som en handletur. Forventet total fra desktop beholdes separat fra manuelt registrert faktisk total. Fullførte turer lagres i lokal historikk, gruppert etter måned og dato, og kan åpnes i read-only detaljvisning.
 
-## Release-signering
+## Distribusjon og oppdatering
 
-Signing key lagres som GitHub Actions Secrets. Selve `.jks`-filen skal aldri committes til repositoryet.
+GitHub Actions bygger signert release-APK. Tagger på formen `mobile-v*` publiserer APK-en som GitHub Release asset med stabilt navn `handleliste.apk`. Appens update engine bruker Latest Release.
 
-
-## v0.6.4 – identitet for retur til desktop
-PB1 kan valgfritt sende stabil liste-ID og varelinje-ID. Android bevarer disse og PB2 returnerer dem som `sid` og `li`, slik at Personlig Budsjett senere kan matche eksakt handleliste og varelinje. Eldre PB1-koder uten ID-er støttes fortsatt.
+Release-signering skal alltid bruke samme permanente signing key via GitHub Actions Secrets. `.jks` skal aldri committes til repositoryet.

@@ -17,6 +17,7 @@ public final class QrProtocol {
     public static final String PREFIX = "PB1:";
 
     public static final class Payload {
+        public int version = 1;
         public String listName = "Handleliste";
         public String sourceListId = "";
         public final List<ShoppingItem> items = new ArrayList<>();
@@ -41,12 +42,49 @@ public final class QrProtocol {
         }
 
         JSONObject root = new JSONObject(json);
-        if (root.optInt("v", 0) != 1) throw new IllegalArgumentException("Ukjent QR-versjon");
+        int version = root.optInt("v", 0);
+        if (version != 1 && version != 2) throw new IllegalArgumentException("Ukjent QR-versjon");
 
+        return version == 2 ? decodeV2(root) : decodeV1(root);
+    }
+
+    private static Payload decodeV2(JSONObject root) {
         Payload p = new Payload();
+        p.version = 2;
+        p.listName = "Handleliste";
+        p.sourceListId = root.optString("id", "").trim();
+
+        JSONArray arr = root.optJSONArray("i");
+        if (arr == null) throw new IllegalArgumentException("QR-koden mangler varer");
+
+        for (int n = 0; n < arr.length(); n++) {
+            JSONObject o = arr.optJSONObject(n);
+            if (o == null) continue;
+
+            ShoppingItem item = new ShoppingItem();
+            item.id = UUID.randomUUID().toString();
+            item.sourceItemId = o.optString("i", "").trim();
+            item.name = o.optString("n", "").trim();
+            item.qty = o.optDouble("q", 0);
+            item.unit = o.optString("u", "").trim();
+            item.category = o.optString("c", "Annet").trim();
+            if (item.category.isEmpty()) item.category = "Annet";
+            item.store = o.optString("s", "").trim();
+            item.ean = ""; // EAN is intentionally not part of compact PB v2.
+            if (o.has("p") && !o.isNull("p")) item.estimatedPrice = o.optDouble("p");
+            item.actualPrice = null;
+            item.checked = false;
+            if (!item.name.isEmpty()) p.items.add(item);
+        }
+
+        if (p.items.isEmpty()) throw new IllegalArgumentException("Handlelisten er tom");
+        return p;
+    }
+
+    private static Payload decodeV1(JSONObject root) {
+        Payload p = new Payload();
+        p.version = 1;
         p.listName = root.optString("list", "Handleliste");
-        // PB1 v1 remains backwards compatible. `id` is the canonical new source-list identity;
-        // aliases are accepted so desktop can migrate without breaking older mobile builds.
         p.sourceListId = firstNonEmpty(root.optString("id", ""), root.optString("listId", ""), root.optString("sid", ""));
         JSONArray arr = root.optJSONArray("items");
         if (arr == null) throw new IllegalArgumentException("QR-koden mangler varer");
@@ -55,11 +93,9 @@ public final class QrProtocol {
             JSONObject o = arr.optJSONObject(n);
             if (o == null) continue;
             ShoppingItem item = ShoppingItem.fromJson(o);
-            // PB1 item `id` belongs to desktop. Keep a separate local UUID so mobile identity and
-            // source identity never become coupled accidentally.
             item.sourceItemId = firstNonEmpty(o.optString("id", ""), o.optString("itemId", ""), o.optString("li", ""));
             item.id = UUID.randomUUID().toString();
-            item.actualPrice = null; // PB1 carries planned/expected data, never actual purchase price.
+            item.actualPrice = null;
             if (!item.name.isEmpty()) p.items.add(item);
         }
         if (p.items.isEmpty()) throw new IllegalArgumentException("Handlelisten er tom");
