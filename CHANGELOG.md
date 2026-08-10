@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.4
+- Forbedret QR-skanning av tettere PB1-koder med stabile UUID-er fra desktop.
+- CameraX analyserer nå QR-bildet i høyere oppløsning (mål 1920×1080) for bedre ML Kit-dekoding.
+- Ingen endringer i PB1/PB2-format eller handlelogikk.
+
 ## v0.6.3
 - La til stabil `sourceListId` fra PB1 og `sid` i PB2.
 - La til stabil `sourceItemId` fra PB1 og `li` per kjøpt vare i PB2.

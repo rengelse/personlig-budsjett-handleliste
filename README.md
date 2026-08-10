@@ -1,8 +1,8 @@
-# Personlig Budsjett – Handleliste Android v0.6.3
+# Personlig Budsjett – Handleliste Android v0.6.4
 
 Android-handleappen for **Personlig Budsjett**. Desktopappen planlegger og genererer handlelisten; mobilappen mottar listen via PB1-QR og brukes under selve handleturen.
 
-## v0.6.3
+## v0.6.4
 
 - Aktiv handleliste lagres som en **handletur**.
 - Forventet totalpris fra desktop beholdes separat fra manuelt registrert **faktisk totalpris**.
@@ -28,5 +28,5 @@ Update engine i appen sjekker Latest Release og kan laste ned denne APK-en. Alle
 Signing key lagres som GitHub Actions Secrets. Selve `.jks`-filen skal aldri committes til repositoryet.
 
 
-## v0.6.3 – identitet for retur til desktop
+## v0.6.4 – identitet for retur til desktop
 PB1 kan valgfritt sende stabil liste-ID og varelinje-ID. Android bevarer disse og PB2 returnerer dem som `sid` og `li`, slik at Personlig Budsjett senere kan matche eksakt handleliste og varelinje. Eldre PB1-koder uten ID-er støttes fortsatt.

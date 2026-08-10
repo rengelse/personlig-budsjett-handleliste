@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Size;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -75,7 +76,11 @@ public class ScannerActivity extends AppCompatActivity {
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
+                // PB1 payloads can become fairly dense when they contain stable list/item UUIDs.
+                // CameraX may otherwise select a low default analysis resolution (often around 640x480),
+                // which is insufficient for reliable ML Kit decoding of dense QR codes.
                 ImageAnalysis analysis = new ImageAnalysis.Builder()
+                        .setTargetResolution(new Size(1920, 1080))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
                 analysis.setAnalyzer(executor, this::analyze);
