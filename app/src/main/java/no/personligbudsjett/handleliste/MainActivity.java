@@ -361,14 +361,22 @@ public class MainActivity extends AppCompatActivity {
         android.widget.LinearLayout recent = view.findViewById(R.id.recentContainer);
 
         android.content.SharedPreferences prefs = getSharedPreferences("item_usage", MODE_PRIVATE);
-        java.util.List<String> names = new java.util.ArrayList<>();
-        for (ShoppingItem item : items) if (item.name != null && !item.name.trim().isEmpty() && !names.contains(item.name)) names.add(item.name);
-        names.sort((a,b) -> Integer.compare(prefs.getInt("count_"+b,0), prefs.getInt("count_"+a,0)));
+        migrateLegacyItemUsage(prefs);
 
-        for (int i=0; i<Math.min(5,names.size()); i++) addQuickButton(most, names.get(i), search);
-        java.util.List<String> rev = new java.util.ArrayList<>(names);
-        java.util.Collections.reverse(rev);
-        for (int i=0; i<Math.min(4,rev.size()); i++) addQuickButton(recent, rev.get(i), search);
+        java.util.List<String> names = getUsageNames(prefs);
+        java.util.List<String> mostUsed = new java.util.ArrayList<>(names);
+        mostUsed.sort((a, b) -> {
+            int countCompare = Integer.compare(prefs.getInt("count_" + b, 0), prefs.getInt("count_" + a, 0));
+            if (countCompare != 0) return countCompare;
+            return Long.compare(prefs.getLong("last_used_" + b, 0L), prefs.getLong("last_used_" + a, 0L));
+        });
+        for (int i = 0; i < Math.min(5, mostUsed.size()); i++) addQuickButton(most, mostUsed.get(i), search);
+
+        java.util.List<String> recentlyUsed = new java.util.ArrayList<>(names);
+        recentlyUsed.sort((a, b) -> Long.compare(
+                prefs.getLong("last_used_" + b, 0L),
+                prefs.getLong("last_used_" + a, 0L)));
+        for (int i = 0; i < Math.min(4, recentlyUsed.size()); i++) addQuickButton(recent, recentlyUsed.get(i), search);
 
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(view)
@@ -384,12 +392,59 @@ public class MainActivity extends AppCompatActivity {
             item.qty = 1;
             item.unit = "stk";
             items.add(item);
-            prefs.edit().putInt("count_"+name, prefs.getInt("count_"+name,0)+1)
-                    .putString("last_"+System.currentTimeMillis(), name).apply();
+            recordItemUsage(prefs, name);
             saveAndRender();
             dialog.dismiss();
         }));
         dialog.show();
+    }
+
+    private java.util.List<String> getUsageNames(android.content.SharedPreferences prefs) {
+        java.util.LinkedHashSet<String> names = new java.util.LinkedHashSet<>();
+        for (String key : prefs.getAll().keySet()) {
+            if (key.startsWith("count_") && key.length() > 6) {
+                names.add(key.substring(6));
+            } else if (key.startsWith("last_used_") && key.length() > 10) {
+                names.add(key.substring(10));
+            }
+        }
+        return new java.util.ArrayList<>(names);
+    }
+
+    private void recordItemUsage(android.content.SharedPreferences prefs, String name) {
+        long now = System.currentTimeMillis();
+        prefs.edit()
+                .putInt("count_" + name, prefs.getInt("count_" + name, 0) + 1)
+                .putLong("last_used_" + name, now)
+                .apply();
+    }
+
+    private void migrateLegacyItemUsage(android.content.SharedPreferences prefs) {
+        if (prefs.getBoolean("usage_v2_migrated", false)) return;
+
+        android.content.SharedPreferences.Editor editor = prefs.edit();
+        java.util.Map<String, ?> all = prefs.getAll();
+        java.util.Map<String, Long> newestByName = new java.util.HashMap<>();
+        for (java.util.Map.Entry<String, ?> entry : all.entrySet()) {
+            String key = entry.getKey();
+            if (!key.startsWith("last_") || key.startsWith("last_used_")) continue;
+            Object value = entry.getValue();
+            if (!(value instanceof String)) continue;
+            String name = ((String) value).trim();
+            if (name.isEmpty()) continue;
+            try {
+                long timestamp = Long.parseLong(key.substring(5));
+                Long previous = newestByName.get(name);
+                if (previous == null || timestamp > previous) newestByName.put(name, timestamp);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        for (java.util.Map.Entry<String, Long> entry : newestByName.entrySet()) {
+            String key = "last_used_" + entry.getKey();
+            long existing = prefs.getLong(key, 0L);
+            if (entry.getValue() > existing) editor.putLong(key, entry.getValue());
+        }
+        editor.putBoolean("usage_v2_migrated", true).apply();
     }
 
     private void addQuickButton(android.widget.LinearLayout parent, String name, android.widget.EditText search) {
@@ -1113,14 +1168,14 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog detailsDialog = new AlertDialog.Builder(this)
                 .setTitle(trip.listName == null || trip.listName.trim().isEmpty() ? "Handletur" : trip.listName)
                 .setView(scroll)
-                .setNegativeButton("Slett", null)
-                .setNeutralButton("Lukk", null)
+                .setNegativeButton("Lukk", null)
+                .setNeutralButton("Slett", null)
                 .setPositiveButton("Send til PC", (dialog, which) -> startSendToPc(trip))
                 .create();
 
         detailsDialog.setOnShowListener(ignored -> {
-            detailsDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.pb_danger));
-            detailsDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v ->
+            detailsDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(ContextCompat.getColor(this, R.color.pb_danger));
+            detailsDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v ->
                     new AlertDialog.Builder(this)
                             .setTitle("Slett handletur?")
                             .setMessage("Er du sikker på at du vil slette denne handleturen?\n\nHandleturen og alle lagrede varer blir permanent slettet.")

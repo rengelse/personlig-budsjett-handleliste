@@ -1,4 +1,4 @@
-# Personlig Budsjett Handleliste v0.6.7
+# Personlig Budsjett Handleliste v0.6.8
 
 Android-handleappen for **Personlig Budsjett**. Desktop planlegger handlelisten; mobilen mottar den direkte fra Personlig Budsjett over samme lokale Wi-Fi/LAN og brukes under handleturen.
 
@@ -26,3 +26,11 @@ Den aktive handlelisten lagres som en handletur. Forventet total fra desktop beh
 GitHub Actions bygger signert release-APK. Tagger på formen `mobile-v*` publiserer APK-en som GitHub Release asset med stabilt navn `handleliste.apk`. Appens update engine bruker Latest Release.
 
 Release-signering skal alltid bruke samme permanente signing key via GitHub Actions Secrets. `.jks` skal aldri committes til repositoryet.
+
+
+## Hurtiglegg til
+
+«Legg til vare» har lokal, permanent brukshistorikk:
+- «Mest brukt» sorteres etter hvor mange ganger varen er lagt til manuelt.
+- «Nylig brukt» sorteres etter faktisk siste-brukt-tidspunkt.
+- Historikken beholdes mellom appstarter og er uavhengig av aktiv handleliste.

@@ -1,10 +1,10 @@
-# Personlig Budsjett Handleliste v0.6.7 – Slett historikk
+# Personlig Budsjett Handleliste v0.6.8
 
-Denne versjonen gjør det mulig å slette en fullført handletur direkte fra historikkdetaljen.
+Denne versjonen forbedrer historikkdetaljen og hurtigfunksjonen «Legg til vare».
 
-- Ny «Slett»-knapp helt til venstre i detaljvisningen.
-- «Send til PC» beholdes som primær handling til høyre.
-- Sletting krever alltid en egen bekreftelse før data fjernes.
-- Bekreftelsen varsler om at handleturen og alle lagrede varer slettes permanent.
-- Historikken oppdateres umiddelbart etter sletting.
-- Ingen endringer i PB1/PB2 eller lokal LAN-overføring.
+- «Slett» ligger nå helt til venstre i detaljvisningen for en fullført handletur, mens «Send til PC» beholdes helt til høyre.
+- Sletting krever fortsatt eksplisitt bekreftelse før noe fjernes.
+- «Mest brukt» bygger nå på permanent lokal bruksstatistikk, også når varen ikke finnes i den aktive handlelisten.
+- «Nylig brukt» viser nå faktisk nyligst brukte varer basert på tidsstempel.
+- Eksisterende eldre quick-add-historikk migreres automatisk.
+- Ingen endringer i lokal mobiloverføring eller PB1/PB2.

@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.8
+- Rettet knapperekkefølgen i historikkdetaljen: «Slett» bruker nå venstre AlertDialog-posisjon, «Lukk» står i midten og «Send til PC» til høyre.
+- «Mest brukt» bruker nå permanent lokal bruksstatistikk og er ikke lenger avhengig av varer i den aktive handlelisten.
+- «Nylig brukt» sorterer nå etter faktisk siste-brukt-tidspunkt i stedet for å reversere «Mest brukt».
+- Migrerer tidligere lagrede `last_<timestamp>`-verdier én gang, slik at eksisterende quick-add-historikk bevares.
+- Lokal LAN-overføring og PB1/PB2 er uendret.
+
 ## v0.6.7
 - Lagt til sletting av fullførte handleturer fra read-only historikkdetaljen.
 - «Slett» ligger helt til venstre, tydelig adskilt fra «Send til PC».
