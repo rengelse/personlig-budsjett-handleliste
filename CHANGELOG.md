@@ -1,4 +1,20 @@
+# v0.8.2 – Felles app-logo
+
+- Ny Android-logo basert på samme ikon som Personlig Budsjett desktop.
+- Oppdatert launcher icon, round icon og adaptive icon.
+- Samme logo brukes også i toppfeltet inne i appen.
+- Ingen endringer i handlelogikk, PB1/PB2, LAN-overføring eller Kassal.app.
+
 # Changelog
+
+## v0.8.1
+- Rettet temastøtten i Historikk: valgt palett brukes nå på historikkoppsummering, månedstitler, kortkanter, detaljseksjoner og «Send til PC».
+- Slått sammen «Motta fra PC» og «Legg til» på Handleliste. «Motta fra PC» ligger nå som ekstra valg i Legg til-menyen.
+- Ny todelt «+ Legg til»-knapp med egen nedtrekksdel for Skriv inn, Velg fra katalog, Skann kode og Motta fra PC.
+- Redesignet Overfør-siden til samme empty-state-stil som tom Handleliste med «Klar for overføring?».
+- Ny todelt «+ Overfør»-knapp med valgene Motta fra PC og Overfør til PC.
+- «Overfør til PC» sender brukeren direkte til Historikk for valg av fullført handletur.
+- PB1/PB2, Kassal.app-integrasjonen og LAN-transporten er uendret.
 
 ## v0.8.0
 - Ny Legg til vare-meny med Skriv inn, Velg fra katalog og Skann kode.

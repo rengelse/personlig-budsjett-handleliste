@@ -1,6 +1,6 @@
 # Personlig Budsjett Handleliste
 
-**Gjeldende versjon: v0.8.0**
+**Gjeldende versjon: v0.8.1**
 
 Android-handleappen for **Personlig Budsjett**. Desktop planlegger handlelisten; mobilen mottar den direkte fra Personlig Budsjett over samme lokale Wi-Fi/LAN og brukes under handleturen.
 
@@ -50,3 +50,14 @@ Release-signering skal alltid bruke samme permanente signing key via GitHub Acti
 
 ## Kassal.app-integrasjon (v0.8.0)
 Legg til vare tilbyr Skriv inn, Velg fra katalog og Skann kode. Strekkodeskanning gjør EAN-oppslag mot Kassal.app når en API-nøkkel er konfigurert under Innstillinger. API-nøkkelen lagres lokalt på telefonen og bygges ikke inn i APK-en.
+
+
+## UI v0.8.1
+- Handleliste bruker en todelt «+ Legg til»-knapp. Nedtrekksmenyen inneholder Skriv inn, Velg fra katalog, Skann kode og Motta fra PC.
+- Overfør-siden bruker samme empty-state-stil som tom Handleliste, med Motta fra PC / Overfør til PC.
+- Historikk følger valgt tema/palett.
+
+
+## Visuell identitet
+
+Android-appen bruker samme app-logo som Personlig Budsjett på desktop, inkludert adaptive launcher icons på nyere Android-versjoner.

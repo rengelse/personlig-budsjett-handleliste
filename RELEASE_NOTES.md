@@ -1,7 +1,7 @@
-# Personlig Budsjett Handleliste v0.8.0
+# Personlig Budsjett Handleliste v0.8.2
 
-Denne versjonen utvider Legg til vare med tre tydelige valg: **Skriv inn**, **Velg fra katalog** og **Skann kode**.
+Denne versjonen samler den visuelle identiteten mellom Personlig Budsjett på desktop og Android-handlelisten. Appen bruker nå samme økonomi-logo som desktopappen, både som launcher-ikon og i toppfeltet inne i appen.
 
-Strekkodeskanning bruker nå en egen produktmodus og kan slå opp EAN mot Kassal.app. Når et produkt finnes, vises tilgjengelige butikk-/pristreff slik at riktig variant kan legges til handlelisten. Kassal.app API-nøkkel konfigureres lokalt under **Innstillinger → Kassal.app**, med egen tilkoblingstest.
+Android launcher-ikonet er levert som både vanlig, round og adaptive icon slik at motivet vises riktig på nyere Android-enheter og launchere.
 
-PB1/PB2 og lokal LAN-overføring mot Personlig Budsjett Desktop er ikke endret.
+Ingen handlefunksjoner, PB1/PB2, lokal LAN-overføring eller Kassal.app-integrasjon er endret.

@@ -210,17 +210,18 @@ public class MainActivity extends AppCompatActivity {
         });
         list.setAdapter(adapter);
 
-        findViewById(R.id.addButton).setOnClickListener(v -> showAddItemActions());
-        findViewById(R.id.emptyAddButton).setOnClickListener(v -> showAddItemActions());
-        findViewById(R.id.emptyReceiveButton).setOnClickListener(v -> startReceiveFromPc());
+        findViewById(R.id.addButton).setOnClickListener(v -> showQuickAdd(0, true));
+        findViewById(R.id.addMenuButton).setOnClickListener(this::showAddItemMenu);
+        findViewById(R.id.emptyAddButton).setOnClickListener(v -> showQuickAdd(0, true));
+        findViewById(R.id.emptyAddMenuButton).setOnClickListener(this::showAddItemMenu);
         clearDoneButton.setOnClickListener(v -> clearDone());
         editActualTotalButton.setOnClickListener(v -> editActualTotal());
         completeTripButton.setOnClickListener(v -> completeCurrentTrip());
         groupStoreButton.setOnClickListener(v -> setGrouping(true));
         groupCategoryButton.setOnClickListener(v -> setGrouping(false));
         navScanButton.setOnClickListener(v -> showTransfer());
-        findViewById(R.id.transferReceiveButton).setOnClickListener(v -> startReceiveFromPc());
-        findViewById(R.id.transferHistoryButton).setOnClickListener(v -> showOverview());
+        findViewById(R.id.transferActionButton).setOnClickListener(this::showTransferMenu);
+        findViewById(R.id.transferMenuButton).setOnClickListener(this::showTransferMenu);
         navOverviewButton.setOnClickListener(v -> showOverview());
         navListButton.setOnClickListener(v -> showList());
         navSettingsButton.setOnClickListener(v -> showSettings());
@@ -391,9 +392,17 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setProgressTintList(android.content.res.ColorStateList.valueOf(p.primary));
         updateDownloadProgress.setProgressTintList(android.content.res.ColorStateList.valueOf(p.primary));
         expectedTotalText.setTextColor(p.primary);
-        tintPrimary(findViewById(R.id.addButton), p.primary);
-        tintPrimary(findViewById(R.id.emptyReceiveButton), p.primary);
-        tintPrimary(findViewById(R.id.transferReceiveButton), p.primary);
+        tintSplitLeft(findViewById(R.id.addButton), p.primary);
+        tintSplitRight(findViewById(R.id.addMenuButton), p.primary);
+        tintSplitLeft(findViewById(R.id.emptyAddButton), p.primary);
+        tintSplitRight(findViewById(R.id.emptyAddMenuButton), p.primary);
+        tintSplitLeft(findViewById(R.id.transferActionButton), p.primary);
+        tintSplitRight(findViewById(R.id.transferMenuButton), p.primary);
+        TextView emptyHeroIcon = findViewById(R.id.emptyHeroIcon);
+        if (emptyHeroIcon != null) emptyHeroIcon.setTextColor(p.primary);
+        TextView transferHeroIcon = findViewById(R.id.transferHeroIcon);
+        if (transferHeroIcon != null) transferHeroIcon.setTextColor(p.primary);
+        applyAccentCard(overviewStores, p.primary);
         tintPrimary(completeTripButton, p.primary);
         if (installUpdateButton != null) tintPrimary(installUpdateButton, p.primary);
         setActiveNav(currentActiveNav());
@@ -414,6 +423,71 @@ public class MainActivity extends AppCompatActivity {
         bg.setCornerRadius(dp(13));
         view.setBackground(bg);
         if (view instanceof TextView) ((TextView) view).setTextColor(PaletteManager.contrastText(color));
+    }
+
+    private void tintSplitLeft(View view, int color) {
+        if (view == null) return;
+        float r = dp(18);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(color);
+        bg.setCornerRadii(new float[]{r,r, 0,0, 0,0, r,r});
+        view.setBackground(bg);
+        if (view instanceof TextView) ((TextView) view).setTextColor(PaletteManager.contrastText(color));
+    }
+
+    private void tintSplitRight(View view, int color) {
+        if (view == null) return;
+        float r = dp(18);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(color);
+        bg.setCornerRadii(new float[]{0,0, r,r, r,r, 0,0});
+        view.setBackground(bg);
+        if (view instanceof TextView) ((TextView) view).setTextColor(PaletteManager.contrastText(color));
+    }
+
+    private void applyAccentCard(View view, int accent) {
+        if (view == null) return;
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(ContextCompat.getColor(this, R.color.pb_surface));
+        bg.setStroke(dp(1), accent);
+        bg.setCornerRadius(dp(18));
+        view.setBackground(bg);
+    }
+
+    private void showAddItemMenu(View anchor) {
+        android.widget.PopupMenu menu = new android.widget.PopupMenu(this, anchor);
+        menu.getMenu().add(0, 1, 0, "Skriv inn");
+        menu.getMenu().add(0, 2, 1, "Velg fra katalog");
+        menu.getMenu().add(0, 3, 2, "Skann kode");
+        menu.getMenu().add(0, 4, 3, "Motta fra PC");
+        menu.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 1: showQuickAdd(0, true); return true;
+                case 2: showQuickAdd(1, false); return true;
+                case 3: startProductBarcodeScan(); return true;
+                case 4: startReceiveFromPc(); return true;
+                default: return false;
+            }
+        });
+        menu.show();
+    }
+
+    private void showTransferMenu(View anchor) {
+        android.widget.PopupMenu menu = new android.widget.PopupMenu(this, anchor);
+        menu.getMenu().add(0, 1, 0, "Motta fra PC");
+        menu.getMenu().add(0, 2, 1, "Overfør til PC");
+        menu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == 1) {
+                startReceiveFromPc();
+                return true;
+            }
+            if (item.getItemId() == 2) {
+                showOverview();
+                return true;
+            }
+            return false;
+        });
+        menu.show();
     }
 
     private void showOverview() {
@@ -1359,7 +1433,7 @@ public class MainActivity extends AppCompatActivity {
 
             TextView monthTitle = new TextView(this);
             monthTitle.setText(capitalize(monthFormat.format(new Date(monthDate))));
-            monthTitle.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+            monthTitle.setTextColor(PaletteManager.current(this).primary);
             monthTitle.setTextSize(18);
             monthTitle.setTypeface(monthTitle.getTypeface(), android.graphics.Typeface.BOLD);
             monthText.addView(monthTitle);
@@ -1386,7 +1460,7 @@ public class MainActivity extends AppCompatActivity {
             monthHeader.addView(monthText);
 
             TextView arrow = new TextView(this);
-            arrow.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
+            arrow.setTextColor(PaletteManager.current(this).primary);
             arrow.setTextSize(20);
             arrow.setPadding(dp(12), 0, 0, 0);
             monthHeader.addView(arrow);
@@ -1400,7 +1474,7 @@ public class MainActivity extends AppCompatActivity {
                 long when = trip.completedAt == null ? trip.createdAt : trip.completedAt;
                 LinearLayout card = new LinearLayout(this);
                 card.setOrientation(LinearLayout.VERTICAL);
-                card.setBackgroundResource(R.drawable.bg_card);
+                applyAccentCard(card, PaletteManager.current(this).primary);
                 card.setPadding(dp(16), dp(14), dp(16), dp(14));
                 card.setClickable(true);
                 card.setFocusable(true);
@@ -1481,7 +1555,7 @@ public class MainActivity extends AppCompatActivity {
         for (Map.Entry<String, List<ShoppingItem>> entry : grouped.entrySet()) {
             TextView storeTitle = new TextView(this);
             storeTitle.setText(entry.getKey());
-            storeTitle.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+            storeTitle.setTextColor(PaletteManager.current(this).primary);
             storeTitle.setTextSize(16);
             storeTitle.setTypeface(storeTitle.getTypeface(), android.graphics.Typeface.BOLD);
             storeTitle.setPadding(0, dp(10), 0, dp(5));
@@ -1513,6 +1587,7 @@ public class MainActivity extends AppCompatActivity {
                 .create();
 
         detailsDialog.setOnShowListener(ignored -> {
+            detailsDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(PaletteManager.current(this).primary);
             detailsDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(ContextCompat.getColor(this, R.color.pb_danger));
             detailsDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v ->
                     new AlertDialog.Builder(this)
