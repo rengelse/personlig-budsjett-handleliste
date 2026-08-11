@@ -82,7 +82,8 @@ public class ShoppingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             HeaderHolder h = (HeaderHolder) holder;
             h.text.setText(row.header);
             h.icon.setText(groupingByStore && !row.header.startsWith("Ferdig") ? "▣" : "◇");
-            h.count.setText(String.valueOf(row.group == null ? 0 : row.group.size()));
+            int groupSize = row.group == null ? 0 : row.group.size();
+            h.count.setText(groupSize + (groupSize == 1 ? " vare" : " varer"));
 
             double total=0;
             boolean hasPrice=false;

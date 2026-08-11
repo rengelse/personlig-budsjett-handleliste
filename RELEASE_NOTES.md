@@ -1,10 +1,12 @@
-# Personlig Budsjett Handleliste v0.6.8
+# Personlig Budsjett Handleliste v0.7.0
 
-Denne versjonen forbedrer historikkdetaljen og hurtigfunksjonen «Legg til vare».
+Denne versjonen er første større UI-redesign av selve handleflaten.
 
-- «Slett» ligger nå helt til venstre i detaljvisningen for en fullført handletur, mens «Send til PC» beholdes helt til høyre.
-- Sletting krever fortsatt eksplisitt bekreftelse før noe fjernes.
-- «Mest brukt» bygger nå på permanent lokal bruksstatistikk, også når varen ikke finnes i den aktive handlelisten.
-- «Nylig brukt» viser nå faktisk nyligst brukte varer basert på tidsstempel.
-- Eksisterende eldre quick-add-historikk migreres automatisk.
-- Ingen endringer i lokal mobiloverføring eller PB1/PB2.
+- Ny, mer kompakt Handleliste-header med fremdrift, gjenstående beløp, forventet total og faktisk total uten store dashboardblokker.
+- Flatere og tettere varerader med avkrysning til venstre, vare/mengde i midten og pris tydelig høyrejustert.
+- Butikk-/kategoriheadere er gjort enklere og mindre kortpregede, med antall varer og gruppesum i samme linje.
+- «Legg til vare» er tydelig hovedhandling nær tommelen; «Skjul/Vis handlet» er visuelt sekundær.
+- Ny tom-listetilstand med direkte valg mellom «Motta fra PC» og «Legg til vare».
+- Bunnnavigasjonen prioriterer nå Handleliste først, deretter Historikk, Motta fra PC og Innstillinger.
+- «Mest brukt» og «Nylig brukt» vises som kompakte, horisontale hurtigvalg i Legg til vare-dialogen.
+- Eksisterende handlelogikk, historikk, lokal LAN-overføring og PB1/PB2 er uendret.

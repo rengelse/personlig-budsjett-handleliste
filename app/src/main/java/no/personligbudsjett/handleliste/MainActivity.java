@@ -62,6 +62,10 @@ public class MainActivity extends AppCompatActivity {
     private android.widget.Button groupStoreButton;
     private android.widget.Button groupCategoryButton;
     private Button clearDoneButton;
+    private View progressCard;
+    private View groupingControls;
+    private View actionBar;
+    private View emptyState;
     private boolean groupByStore = true;
     private boolean hideDone = false;
     private View overviewPanel;
@@ -151,6 +155,10 @@ public class MainActivity extends AppCompatActivity {
         groupStoreButton = findViewById(R.id.groupStoreButton);
         groupCategoryButton = findViewById(R.id.groupCategoryButton);
         clearDoneButton = findViewById(R.id.clearDoneButton);
+        progressCard = findViewById(R.id.progressCard);
+        groupingControls = findViewById(R.id.groupingControls);
+        actionBar = findViewById(R.id.actionBar);
+        emptyState = findViewById(R.id.emptyState);
         groupByStore = getPreferences(MODE_PRIVATE).getBoolean("group_by_store", true);
         hideDone = getPreferences(MODE_PRIVATE).getBoolean("hide_done", false);
         overviewPanel = findViewById(R.id.overviewPanel);
@@ -185,6 +193,8 @@ public class MainActivity extends AppCompatActivity {
         list.setAdapter(adapter);
 
         findViewById(R.id.addButton).setOnClickListener(v -> showQuickAdd());
+        findViewById(R.id.emptyAddButton).setOnClickListener(v -> showQuickAdd());
+        findViewById(R.id.emptyReceiveButton).setOnClickListener(v -> startReceiveFromPc());
         clearDoneButton.setOnClickListener(v -> clearDone());
         editActualTotalButton.setOnClickListener(v -> editActualTotal());
         completeTripButton.setOnClickListener(v -> completeCurrentTrip());
@@ -320,7 +330,8 @@ public class MainActivity extends AppCompatActivity {
     private void showOverview() {
         findViewById(R.id.topScroll).setVisibility(View.GONE);
         findViewById(R.id.list).setVisibility(View.GONE);
-        ((View)findViewById(R.id.addButton).getParent()).setVisibility(View.GONE);
+        actionBar.setVisibility(View.GONE);
+        emptyState.setVisibility(View.GONE);
         settingsPanel.setVisibility(View.GONE);
         overviewPanel.setVisibility(View.VISIBLE);
         renderHistory();
@@ -331,8 +342,7 @@ public class MainActivity extends AppCompatActivity {
         overviewPanel.setVisibility(View.GONE);
         settingsPanel.setVisibility(View.GONE);
         findViewById(R.id.topScroll).setVisibility(View.VISIBLE);
-        findViewById(R.id.list).setVisibility(View.VISIBLE);
-        ((View)findViewById(R.id.addButton).getParent()).setVisibility(View.VISIBLE);
+        applyListEmptyState();
         setActiveNav(navListButton);
     }
 
@@ -340,9 +350,19 @@ public class MainActivity extends AppCompatActivity {
         overviewPanel.setVisibility(View.GONE);
         findViewById(R.id.topScroll).setVisibility(View.GONE);
         findViewById(R.id.list).setVisibility(View.GONE);
-        ((View)findViewById(R.id.addButton).getParent()).setVisibility(View.GONE);
+        actionBar.setVisibility(View.GONE);
+        emptyState.setVisibility(View.GONE);
         settingsPanel.setVisibility(View.VISIBLE);
         setActiveNav(navSettingsButton);
+    }
+
+    private void applyListEmptyState() {
+        boolean empty = items.isEmpty();
+        if (progressCard != null) progressCard.setVisibility(empty ? View.GONE : View.VISIBLE);
+        if (groupingControls != null) groupingControls.setVisibility(empty ? View.GONE : View.VISIBLE);
+        if (emptyState != null) emptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
+        findViewById(R.id.list).setVisibility(empty ? View.GONE : View.VISIBLE);
+        if (actionBar != null) actionBar.setVisibility(empty ? View.GONE : View.VISIBLE);
     }
 
     private void setActiveNav(android.widget.Button active) {
@@ -451,10 +471,17 @@ public class MainActivity extends AppCompatActivity {
         android.widget.Button b = new android.widget.Button(this);
         b.setText(name);
         b.setAllCaps(false);
+        b.setTextSize(13);
+        b.setMinHeight(0);
+        b.setMinWidth(0);
+        b.setPadding(dp(14), 0, dp(14), 0);
+        b.setBackgroundResource(R.drawable.bg_chip);
+        b.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
         b.setOnClickListener(v -> search.setText(name));
-        parent.addView(b, new android.widget.LinearLayout.LayoutParams(
-                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT));
+        android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, dp(40));
+        lp.setMarginEnd(dp(7));
+        parent.addView(b, lp);
     }
 
     private void setGrouping(boolean byStore) {
@@ -840,7 +867,7 @@ public class MainActivity extends AppCompatActivity {
         boolean hasAnyPrice = items.stream().anyMatch(i -> i.estimatedPrice != null);
         NumberFormat money = NumberFormat.getCurrencyInstance(new Locale("nb","NO"));
 
-        summaryText.setText("Versjon " + BuildConfig.VERSION_NAME);
+        summaryText.setText("v" + BuildConfig.VERSION_NAME);
 
         int percent = items.isEmpty() ? 0 : (int)Math.round((doneCount * 100.0) / items.size());
         progressText.setText(doneCount + " av " + items.size() + " handlet");
@@ -899,6 +926,7 @@ public class MainActivity extends AppCompatActivity {
 
         adapter.setGroupingByStore(groupByStore);
         adapter.setRows(headers, groups);
+        applyListEmptyState();
     }
 
     private void ensureActiveTrip() {

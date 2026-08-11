@@ -1,6 +1,11 @@
-# Personlig Budsjett Handleliste v0.6.8
+# Personlig Budsjett Handleliste v0.7.0
 
 Android-handleappen for **Personlig Budsjett**. Desktop planlegger handlelisten; mobilen mottar den direkte fra Personlig Budsjett over samme lokale Wi-Fi/LAN og brukes under handleturen.
+
+
+## Handleflate v0.7.0
+
+Handlelisten er nå appens tydelige hovedflate: kompakt fremdrift øverst, flate varerader, butikk/kategori som små filtre og «Legg til vare» som primær tommelhandling. Når listen er tom vises en egen startflate med direkte tilgang til lokal PC-overføring eller manuell vare.
 
 ## Lokal mobiloverføring
 

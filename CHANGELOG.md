@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.7.0
+- Første større UI-redesign av Handleliste med kompakt fremdriftsheader og mindre dashboardpreg.
+- Flatere, tettere varerader med tydelig avkrysning, vare/mengde og høyrejustert pris.
+- Forenklede butikk-/kategoriheadere med antall varer, gruppesum og kollapskontroll på én linje.
+- «Legg til vare» er hovedhandling nær bunnen; «Skjul/Vis handlet» er gjort visuelt sekundær.
+- Ny empty state med «Motta fra PC» og «Legg til vare» når ingen aktiv liste finnes.
+- Bunnnavigasjonen er endret til Handleliste → Historikk → Motta fra PC → Innstillinger.
+- Hurtigvalg i «Legg til vare» vises kompakt og horisontalt.
+- Ingen endringer i PB1/PB2, lokal LAN-overføring, historikkdata eller øvrig forretningslogikk.
+
 ## v0.6.8
 - Rettet knapperekkefølgen i historikkdetaljen: «Slett» bruker nå venstre AlertDialog-posisjon, «Lukk» står i midten og «Send til PC» til høyre.
 - «Mest brukt» bruker nå permanent lokal bruksstatistikk og er ikke lenger avhengig av varer i den aktive handlelisten.
