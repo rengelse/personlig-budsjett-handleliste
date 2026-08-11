@@ -69,3 +69,9 @@ Bunnnavigasjonen har tre hovedflater (Handleliste, Historikk, Overfør), mens In
 
 ## Katalog v0.8.8
 Katalogen inneholder nå flere hundre lokale basisvarer fordelt på hurtigkategorier og hovedkategorier. Tekst- og stemmesøk bruker denne samme offline-katalogen.
+
+## Skann til PC (prototype v0.9.0)
+
+Handleliste-appen kan brukes som lokal strekkodeskanner for Personlig Budsjett desktop. Desktop viser en pairing-QR med en lokal URL på formen `http://<privat-ip>:<port>/pb/barcode/<token>`. Android scanner QR-en, åpner en kontinuerlig EAN/UPC-scanner og POST-er hver dekodede kode tilbake til samme lokale session. Produktoppslag og Kassal.app-logikk skal ligge på desktop i denne flyten.
+
+Se `DESKTOP_BARCODE_PROTOCOL.md` for den konkrete prototypekontrakten.

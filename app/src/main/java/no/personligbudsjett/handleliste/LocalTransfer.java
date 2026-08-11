@@ -11,7 +11,8 @@ import java.nio.charset.StandardCharsets;
 public final class LocalTransfer {
     public enum Direction {
         RECEIVE_FROM_PC("/pb/send/"),
-        SEND_TO_PC("/pb/receive/");
+        SEND_TO_PC("/pb/receive/"),
+        BARCODE_TO_PC("/pb/barcode/");
 
         final String pathPrefix;
         Direction(String pathPrefix) { this.pathPrefix = pathPrefix; }
@@ -47,9 +48,13 @@ public final class LocalTransfer {
 
         String path = uri.getPath();
         if (path == null || !path.startsWith(direction.pathPrefix)) {
-            throw new IllegalArgumentException(direction == Direction.RECEIVE_FROM_PC
-                    ? "Dette er ikke en «Send til mobil»-QR fra Personlig Budsjett"
-                    : "Dette er ikke en «Motta fra mobil»-QR fra Personlig Budsjett");
+            if (direction == Direction.RECEIVE_FROM_PC) {
+                throw new IllegalArgumentException("Dette er ikke en «Send til mobil»-QR fra Personlig Budsjett");
+            } else if (direction == Direction.SEND_TO_PC) {
+                throw new IllegalArgumentException("Dette er ikke en «Motta fra mobil»-QR fra Personlig Budsjett");
+            } else {
+                throw new IllegalArgumentException("Dette er ikke en «Skann til PC»-QR fra Personlig Budsjett");
+            }
         }
         String token = path.substring(direction.pathPrefix.length());
         if (token.isEmpty() || token.contains("/") || !token.matches("[A-Za-z0-9_-]+")) {

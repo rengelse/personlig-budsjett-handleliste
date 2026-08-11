@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.9.0
+- Prototype for «Skann til PC» lagt til under Overfør.
+- Pairing skjer med lokal HTTP-URL `/pb/barcode/<token>` fra desktop.
+- Ny vedvarende Android-scanner dekoder EAN-13, EAN-8, UPC-A og UPC-E lokalt.
+- Scanner sender bare `{type:"barcode", ean:"..."}` til desktop; produktoppslag forblir desktopens ansvar.
+- Flere forskjellige varer kan skannes fortløpende uten å lukke scannerbildet.
+- Samme strekkode ignoreres i ca. 1,6 sekunder for å unngå duplikatspam.
+- Visuell sendestatus og haptisk bekreftelse ved vellykket sending.
+- ML Kit auto-zoom aktivert med kameraets støttede zoomområde.
+- Ingen endring i PB1/PB2 eller eksisterende Kassal.app-oppslag for manuell handleliste-scanning.
+
 ## v0.8.8
 - Kategorier i katalogen åpnes nå som en egen katalogside i Legg til vare-flyten.
 - Valgt kategori viser hele vareutvalget med egen overskrift og antall varer.

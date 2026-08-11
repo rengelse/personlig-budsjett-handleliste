@@ -48,7 +48,7 @@ import java.net.URL;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
-    private enum TransferMode { NONE, RECEIVE_FROM_PC, SEND_TO_PC }
+    private enum TransferMode { NONE, RECEIVE_FROM_PC, SEND_TO_PC, BARCODE_TO_PC }
 
     private TransferMode pendingTransferMode = TransferMode.NONE;
     private ShoppingTrip pendingTransferTrip = null;
@@ -125,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
                 if (raw == null) return;
                 if (mode == TransferMode.RECEIVE_FROM_PC) receiveFromPc(raw);
                 else if (mode == TransferMode.SEND_TO_PC && trip != null) sendTripToPc(trip, raw);
+                else if (mode == TransferMode.BARCODE_TO_PC) openDesktopBarcodeScanner(raw);
             });
 
     private final ActivityResultLauncher<Intent> productScannerLauncher =
@@ -533,10 +534,12 @@ public class MainActivity extends AppCompatActivity {
     private void showTransferMenu(View anchor) {
         showBubbleMenu(anchor, new String[]{
                 "⇩  Motta fra PC",
-                "⇧  Overfør til PC"
+                "⇧  Overfør til PC",
+                "▣  Skann til PC"
         }, new Runnable[]{
                 this::startReceiveFromPc,
-                this::showOverview
+                this::showOverview,
+                this::startDesktopBarcodePairing
         });
     }
 
@@ -1237,6 +1240,29 @@ public class MainActivity extends AppCompatActivity {
         groupByStore = byStore;
         getPreferences(MODE_PRIVATE).edit().putBoolean("group_by_store", byStore).apply();
         render();
+    }
+
+
+    private void startDesktopBarcodePairing() {
+        pendingTransferMode = TransferMode.BARCODE_TO_PC;
+        pendingTransferTrip = null;
+        Intent intent = new Intent(this, ScannerActivity.class);
+        intent.putExtra(ScannerActivity.EXTRA_PROMPT, "Skann «Skann vare»-QR fra Personlig Budsjett på PC");
+        intent.putExtra(ScannerActivity.EXTRA_MODE, ScannerActivity.MODE_PAIRING_QR);
+        scannerLauncher.launch(intent);
+    }
+
+    private void openDesktopBarcodeScanner(String pairingQr) {
+        final URL url;
+        try {
+            url = LocalTransfer.validatePairingUrl(pairingQr, LocalTransfer.Direction.BARCODE_TO_PC);
+        } catch (Exception e) {
+            showTransferError("Ugyldig scanner-QR", e);
+            return;
+        }
+        Intent intent = new Intent(this, DesktopBarcodeScannerActivity.class);
+        intent.putExtra(DesktopBarcodeScannerActivity.EXTRA_PAIRING_URL, url.toString());
+        startActivity(intent);
     }
 
     private void startReceiveFromPc() {
