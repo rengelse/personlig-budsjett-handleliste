@@ -1,7 +1,10 @@
-# Personlig Budsjett Handleliste v0.8.2
+# Personlig Budsjett Handleliste v0.8.5
 
-Denne versjonen samler den visuelle identiteten mellom Personlig Budsjett på desktop og Android-handlelisten. Appen bruker nå samme økonomi-logo som desktopappen, både som launcher-ikon og i toppfeltet inne i appen.
+## Nytt
+- Katalogtoppen har nå ett felles søkefelt for hele den lokale varekatalogen.
+- Live søk viser treff mens du skriver.
+- Ny mikrofonknapp bruker Androids talegjenkjenning og fyller søket automatisk.
+- Ny strekkodeknapp åpner eksisterende EAN/UPC-skanner og Kassal.app-oppslag direkte fra katalogen.
+- Kategorier og hurtigvalg fra v0.8.4 er beholdt.
 
-Android launcher-ikonet er levert som både vanlig, round og adaptive icon slik at motivet vises riktig på nyere Android-enheter og launchere.
-
-Ingen handlefunksjoner, PB1/PB2, lokal LAN-overføring eller Kassal.app-integrasjon er endret.
+PB1/PB2, lokal LAN-overføring og Kassal.app-kontrakten er uendret.

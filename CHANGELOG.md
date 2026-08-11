@@ -1,3 +1,19 @@
+## v0.8.4
+- Katalogen er bygget om til et komplett lokalt kataloghierarki.
+- Nye hurtigkategorier: Vegetar, Vegan, Keto, Glutenfri, Proteinrik, Frys og Populært.
+- Hver hurtigkategori åpner et eget vareutvalg i et visuelt 3-kolonne grid.
+- Hovedkatalogen er delt i MAT, DRIKKE, PERSONLIG PLEIE OG HELSE, HJEM OG LIVSSTIL og ANNET.
+- Alle hovedkategorier har egne lokale basisvarer og kan brukes helt offline.
+- Varer fra katalogen legges til med kategori og standardenhet og teller videre i Mest brukt/Nylig brukt.
+- PB1/PB2, lokal LAN-overføring og Kassal.app er uendret.
+
+## v0.8.3
+- Nye avrundede handlingsbobler for Legg til/Overfør-dropdown.
+- Innstillinger flyttet fra bunnmenyen til tannhjul øverst til høyre.
+- Bunnnavigasjon redusert til Handleliste, Historikk og Overfør.
+- Safe-area/statuslinje-insets lagt til i hovedlayouten.
+- Temabinding rettet for Hold skjermen på, Til handlelisten og fremdriftskort.
+
 # v0.8.2 – Felles app-logo
 
 - Ny Android-logo basert på samme ikon som Personlig Budsjett desktop.
@@ -163,3 +179,6 @@
 - Ny empty state.
 - Fullskjerm Legg til vare med Vanlige, Kategorier og Mest brukt.
 - Lokal kategorikatalog og nylig-brukt-liste.
+
+## v0.8.5
+- Globalt katalogsøk, stemmesøk og direkte strekkodeskanning fra katalogtoppen.

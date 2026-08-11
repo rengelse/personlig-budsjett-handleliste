@@ -49,7 +49,7 @@ Release-signering skal alltid bruke samme permanente signing key via GitHub Acti
 
 
 ## Kassal.app-integrasjon (v0.8.0)
-Legg til vare tilbyr Skriv inn, Velg fra katalog og Skann kode. Strekkodeskanning gjør EAN-oppslag mot Kassal.app når en API-nøkkel er konfigurert under Innstillinger. API-nøkkelen lagres lokalt på telefonen og bygges ikke inn i APK-en.
+Legg til vare tilbyr Skriv inn, Velg fra katalog og Skann kode. Den lokale katalogen har hurtigkategorier (Vegetar, Vegan, Keto, Glutenfri, Proteinrik, Frys og Populært) og hovedseksjoner for Mat, Drikke, Personlig pleie/helse, Hjem/livsstil og Annet. Hver kategori åpner et eget varegrid. Strekkodeskanning gjør EAN-oppslag mot Kassal.app når en API-nøkkel er konfigurert under Innstillinger. API-nøkkelen lagres lokalt på telefonen og bygges ikke inn i APK-en.
 
 
 ## UI v0.8.1
@@ -61,3 +61,7 @@ Legg til vare tilbyr Skriv inn, Velg fra katalog og Skann kode. Strekkodeskannin
 ## Visuell identitet
 
 Android-appen bruker samme app-logo som Personlig Budsjett på desktop, inkludert adaptive launcher icons på nyere Android-versjoner.
+
+
+## UI v0.8.4
+Bunnnavigasjonen har tre hovedflater (Handleliste, Historikk, Overfør), mens Innstillinger åpnes fra tannhjulet øverst. Legg til/Overfør bruker egne avrundede handlingsbobler, og hovedlayouten respekterer Android statuslinje/system-insets. Temaet brukes også på brytere, historikkhandlinger og fremdriftskort.

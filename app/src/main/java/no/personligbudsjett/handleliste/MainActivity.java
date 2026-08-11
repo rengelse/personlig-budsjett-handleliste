@@ -14,6 +14,12 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.PopupWindow;
+import android.graphics.drawable.ColorDrawable;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.view.Gravity;
 import android.view.WindowManager;
 import android.graphics.drawable.GradientDrawable;
 
@@ -83,7 +89,10 @@ public class MainActivity extends AppCompatActivity {
     private android.widget.Button navOverviewButton;
     private android.widget.Button navListButton;
     private android.widget.Button navScanButton;
-    private android.widget.Button navSettingsButton;
+    private android.widget.Button settingsGearList;
+    private android.widget.Button settingsGearHistory;
+    private android.widget.Button settingsGearTransfer;
+    private String lastMainSection = "list";
     private TextView updateStatusText;
     private TextView latestVersionText;
     private Button releaseInfoButton;
@@ -93,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
     private UpdateManager.ReleaseInfo latestRelease;
     private File pendingApk;
     private boolean automaticUpdateNoticeShown = false;
+    private EditText voiceSearchTarget;
 
     private final ActivityResultLauncher<Intent> unknownSourcesLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -125,11 +135,33 @@ public class MainActivity extends AppCompatActivity {
                 lookupScannedProduct(raw.trim());
             });
 
+    private final ActivityResultLauncher<Intent> voiceSearchLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() != RESULT_OK || result.getData() == null || voiceSearchTarget == null) return;
+                java.util.ArrayList<String> matches = result.getData().getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS);
+                if (matches != null && !matches.isEmpty()) {
+                    voiceSearchTarget.setText(matches.get(0));
+                    voiceSearchTarget.setSelection(voiceSearchTarget.length());
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         applySavedAppearanceMode();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        View rootMain = findViewById(R.id.rootMain);
+        final int rootPaddingLeft = rootMain.getPaddingLeft();
+        final int rootPaddingTop = rootMain.getPaddingTop();
+        final int rootPaddingRight = rootMain.getPaddingRight();
+        final int rootPaddingBottom = rootMain.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(rootMain, (view, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            view.setPadding(rootPaddingLeft, rootPaddingTop + systemBars.top, rootPaddingRight, rootPaddingBottom);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(rootMain);
 
         View bottomNav = findViewById(R.id.bottomNav);
         final int bottomNavPaddingLeft = bottomNav.getPaddingLeft();
@@ -194,7 +226,9 @@ public class MainActivity extends AppCompatActivity {
         navOverviewButton = findViewById(R.id.navOverview);
         navListButton = findViewById(R.id.navList);
         navScanButton = findViewById(R.id.navScan);
-        navSettingsButton = findViewById(R.id.navSettings);
+        settingsGearList = findViewById(R.id.settingsGearList);
+        settingsGearHistory = findViewById(R.id.settingsGearHistory);
+        settingsGearTransfer = findViewById(R.id.settingsGearTransfer);
         settingsVersionText.setText("v" + BuildConfig.VERSION_NAME);
 
         RecyclerView list = findViewById(R.id.list);
@@ -224,7 +258,10 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.transferMenuButton).setOnClickListener(this::showTransferMenu);
         navOverviewButton.setOnClickListener(v -> showOverview());
         navListButton.setOnClickListener(v -> showList());
-        navSettingsButton.setOnClickListener(v -> showSettings());
+        settingsGearList.setOnClickListener(v -> showSettings());
+        settingsGearHistory.setOnClickListener(v -> showSettings());
+        settingsGearTransfer.setOnClickListener(v -> showSettings());
+        findViewById(R.id.settingsBackButton).setOnClickListener(v -> returnFromSettings());
         findViewById(R.id.appearanceSettingsRow).setOnClickListener(v -> startActivity(new Intent(this, AppearanceActivity.class)));
         findViewById(R.id.kassalSettingsRow).setOnClickListener(v -> startActivity(new Intent(this, KassalSettingsActivity.class)));
         keepScreenOnSwitch.setChecked(PaletteManager.keepScreenOn(this));
@@ -256,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
                     if (info.updateAvailable) {
                         updateStatusText.setText("Ny versjon v" + info.version + " tilgjengelig");
                         installUpdateButton.setVisibility(View.VISIBLE);
-                        navSettingsButton.setText("⚙  •\nInnstillinger");
+                        setSettingsUpdateDot(true);
                         if (automatic && !automaticUpdateNoticeShown) {
                             automaticUpdateNoticeShown = true;
                             android.widget.Toast.makeText(MainActivity.this,
@@ -266,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         updateStatusText.setText("Oppdatert");
                         installUpdateButton.setVisibility(View.GONE);
-                        navSettingsButton.setText("⚙\nInnstillinger");
+                        setSettingsUpdateDot(false);
                     }
                 });
             }
@@ -392,6 +429,7 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setProgressTintList(android.content.res.ColorStateList.valueOf(p.primary));
         updateDownloadProgress.setProgressTintList(android.content.res.ColorStateList.valueOf(p.primary));
         expectedTotalText.setTextColor(p.primary);
+        applyAccentCard(progressCard, p.primary);
         tintSplitLeft(findViewById(R.id.addButton), p.primary);
         tintSplitRight(findViewById(R.id.addMenuButton), p.primary);
         tintSplitLeft(findViewById(R.id.emptyAddButton), p.primary);
@@ -404,13 +442,14 @@ public class MainActivity extends AppCompatActivity {
         if (transferHeroIcon != null) transferHeroIcon.setTextColor(p.primary);
         applyAccentCard(overviewStores, p.primary);
         tintPrimary(completeTripButton, p.primary);
+        tintPrimary(findViewById(R.id.continueShoppingButton), p.primary);
         if (installUpdateButton != null) tintPrimary(installUpdateButton, p.primary);
+        applySwitchPalette(keepScreenOnSwitch, p.primary);
         setActiveNav(currentActiveNav());
         updateGroupingButtons();
     }
 
     private android.widget.Button currentActiveNav() {
-        if (settingsPanel.getVisibility() == View.VISIBLE) return navSettingsButton;
         if (transferPanel.getVisibility() == View.VISIBLE) return navScanButton;
         if (overviewPanel.getVisibility() == View.VISIBLE) return navOverviewButton;
         return navListButton;
@@ -454,43 +493,101 @@ public class MainActivity extends AppCompatActivity {
         view.setBackground(bg);
     }
 
+    private void applySwitchPalette(androidx.appcompat.widget.SwitchCompat sw, int accent) {
+        if (sw == null) return;
+        int muted = ContextCompat.getColor(this, R.color.pb_muted);
+        int surfaceAlt = ContextCompat.getColor(this, R.color.pb_surface_alt);
+        int[][] states = new int[][]{
+                new int[]{android.R.attr.state_checked},
+                new int[]{}
+        };
+        sw.setThumbTintList(new ColorStateList(states, new int[]{accent, muted}));
+        sw.setTrackTintList(new ColorStateList(states, new int[]{withAlpha(accent, 110), surfaceAlt}));
+    }
+
+    private int withAlpha(int color, int alpha) {
+        return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color));
+    }
+
+    private void setSettingsUpdateDot(boolean visible) {
+        String text = visible ? "⚙•" : "⚙";
+        if (settingsGearList != null) settingsGearList.setText(text);
+        if (settingsGearHistory != null) settingsGearHistory.setText(text);
+        if (settingsGearTransfer != null) settingsGearTransfer.setText(text);
+    }
+
     private void showAddItemMenu(View anchor) {
-        android.widget.PopupMenu menu = new android.widget.PopupMenu(this, anchor);
-        menu.getMenu().add(0, 1, 0, "Skriv inn");
-        menu.getMenu().add(0, 2, 1, "Velg fra katalog");
-        menu.getMenu().add(0, 3, 2, "Skann kode");
-        menu.getMenu().add(0, 4, 3, "Motta fra PC");
-        menu.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-                case 1: showQuickAdd(0, true); return true;
-                case 2: showQuickAdd(1, false); return true;
-                case 3: startProductBarcodeScan(); return true;
-                case 4: startReceiveFromPc(); return true;
-                default: return false;
-            }
+        showBubbleMenu(anchor, new String[]{
+                "✎  Skriv inn",
+                "▦  Velg fra katalog",
+                "▣  Skann kode",
+                "⇩  Motta fra PC"
+        }, new Runnable[]{
+                () -> showQuickAdd(0, true),
+                () -> showQuickAdd(1, false),
+                this::startProductBarcodeScan,
+                this::startReceiveFromPc
         });
-        menu.show();
     }
 
     private void showTransferMenu(View anchor) {
-        android.widget.PopupMenu menu = new android.widget.PopupMenu(this, anchor);
-        menu.getMenu().add(0, 1, 0, "Motta fra PC");
-        menu.getMenu().add(0, 2, 1, "Overfør til PC");
-        menu.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == 1) {
-                startReceiveFromPc();
-                return true;
-            }
-            if (item.getItemId() == 2) {
-                showOverview();
-                return true;
-            }
-            return false;
+        showBubbleMenu(anchor, new String[]{
+                "⇩  Motta fra PC",
+                "⇧  Overfør til PC"
+        }, new Runnable[]{
+                this::startReceiveFromPc,
+                this::showOverview
         });
-        menu.show();
+    }
+
+    private void showBubbleMenu(View anchor, String[] labels, Runnable[] actions) {
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(dp(8), dp(8), dp(8), dp(8));
+
+        PopupWindow popup = new PopupWindow(content, dp(260), WindowManager.LayoutParams.WRAP_CONTENT, true);
+        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popup.setOutsideTouchable(true);
+        popup.setElevation(dp(10));
+
+        int accent = PaletteManager.current(this).primary;
+        int surface = ContextCompat.getColor(this, R.color.pb_surface);
+        int textColor = ContextCompat.getColor(this, R.color.pb_text);
+        for (int index = 0; index < labels.length; index++) {
+            TextView option = new TextView(this);
+            option.setText(labels[index]);
+            option.setTextSize(16);
+            option.setTextColor(textColor);
+            option.setGravity(Gravity.CENTER_VERTICAL);
+            option.setPadding(dp(18), 0, dp(18), 0);
+            GradientDrawable bubble = new GradientDrawable();
+            bubble.setColor(surface);
+            bubble.setStroke(dp(1), accent);
+            bubble.setCornerRadius(dp(22));
+            option.setBackground(bubble);
+            option.setElevation(dp(2));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(52));
+            lp.setMargins(0, index == 0 ? 0 : dp(7), 0, 0);
+            content.addView(option, lp);
+            final Runnable action = actions[index];
+            option.setOnClickListener(v -> {
+                popup.dismiss();
+                action.run();
+            });
+        }
+
+        content.measure(
+                View.MeasureSpec.makeMeasureSpec(dp(260), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        int popupHeight = content.getMeasuredHeight();
+        int xOffset = anchor.getWidth() - dp(260);
+        int yOffset = -(anchor.getHeight() + popupHeight + dp(8));
+        popup.showAsDropDown(anchor, xOffset, yOffset);
     }
 
     private void showOverview() {
+        lastMainSection = "history";
+        findViewById(R.id.bottomNav).setVisibility(View.VISIBLE);
         findViewById(R.id.topScroll).setVisibility(View.GONE);
         findViewById(R.id.list).setVisibility(View.GONE);
         actionBar.setVisibility(View.GONE);
@@ -504,6 +601,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showList() {
+        lastMainSection = "list";
+        findViewById(R.id.bottomNav).setVisibility(View.VISIBLE);
         overviewPanel.setVisibility(View.GONE);
         transferPanel.setVisibility(View.GONE);
         settingsPanel.setVisibility(View.GONE);
@@ -514,6 +613,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showTransfer() {
+        lastMainSection = "transfer";
+        findViewById(R.id.bottomNav).setVisibility(View.VISIBLE);
         overviewPanel.setVisibility(View.GONE);
         settingsPanel.setVisibility(View.GONE);
         findViewById(R.id.topScroll).setVisibility(View.GONE);
@@ -526,6 +627,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showSettings() {
+        findViewById(R.id.bottomNav).setVisibility(View.GONE);
         overviewPanel.setVisibility(View.GONE);
         transferPanel.setVisibility(View.GONE);
         findViewById(R.id.topScroll).setVisibility(View.GONE);
@@ -533,8 +635,14 @@ public class MainActivity extends AppCompatActivity {
         actionBar.setVisibility(View.GONE);
         emptyState.setVisibility(View.GONE);
         settingsPanel.setVisibility(View.VISIBLE);
-        setActiveNav(navSettingsButton);
+        setActiveNav(currentActiveNav());
         updateKeepScreenOn();
+    }
+
+    private void returnFromSettings() {
+        if ("history".equals(lastMainSection)) showOverview();
+        else if ("transfer".equals(lastMainSection)) showTransfer();
+        else showList();
     }
 
     private void applyListEmptyState() {
@@ -547,7 +655,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setActiveNav(android.widget.Button active) {
-        android.widget.Button[] buttons = {navOverviewButton, navListButton, navScanButton, navSettingsButton};
+        android.widget.Button[] buttons = {navOverviewButton, navListButton, navScanButton};
         for (android.widget.Button button : buttons) {
             boolean selected = button == active;
             button.setTextColor(selected ? PaletteManager.current(this).primary : ContextCompat.getColor(this, R.color.pb_muted));
@@ -561,7 +669,12 @@ public class MainActivity extends AppCompatActivity {
         android.widget.LinearLayout recent = view.findViewById(R.id.recentList);
         android.widget.LinearLayout common = view.findViewById(R.id.commonList);
         android.widget.LinearLayout most = view.findViewById(R.id.mostList);
+        android.widget.LinearLayout quickCategoryGrid = view.findViewById(R.id.quickCategoryGrid);
         android.widget.LinearLayout categoryGrid = view.findViewById(R.id.categoryGrid);
+        android.widget.LinearLayout catalogProductGrid = view.findViewById(R.id.catalogProductGrid);
+        View catalogIndexPanel = view.findViewById(R.id.catalogIndexPanel);
+        View catalogProductsPanel = view.findViewById(R.id.catalogProductsPanel);
+        TextView catalogProductTitle = view.findViewById(R.id.catalogProductTitle);
         View commonPanel = view.findViewById(R.id.commonPanel);
         View categoriesPanel = view.findViewById(R.id.categoriesPanel);
         View mostPanel = view.findViewById(R.id.mostPanel);
@@ -571,6 +684,8 @@ public class MainActivity extends AppCompatActivity {
 
         android.content.SharedPreferences prefs = getSharedPreferences("item_usage", MODE_PRIVATE);
         migrateLegacyItemUsage(prefs);
+        view.findViewById(R.id.quickVoice).setOnClickListener(v -> startVoiceCatalogSearch(search));
+        view.findViewById(R.id.quickBarcode).setOnClickListener(v -> startProductBarcodeScan());
         java.util.List<String> names = getUsageNames(prefs);
         java.util.List<String> recentlyUsed = new java.util.ArrayList<>(names);
         recentlyUsed.sort((a, b) -> Long.compare(prefs.getLong("last_used_" + b, 0L), prefs.getLong("last_used_" + a, 0L)));
@@ -591,18 +706,31 @@ public class MainActivity extends AppCompatActivity {
         for (String name : mostUsed) addSuggestionRow(most, name, "", search, prefs);
         if (mostUsed.isEmpty()) { TextView t = new TextView(this); t.setText("Mest brukte varer dukker opp her etter hvert."); t.setTextColor(ContextCompat.getColor(this,R.color.pb_muted)); t.setPadding(0,dp(16),0,0); most.addView(t); }
 
-        String[][] cats = {{"🥬","Frukt & grønt"},{"🥛","Meieri & egg"},{"🥩","Kjøtt"},{"🍞","Bakeri"},{"❄","Frys"},{"🥫","Tørrvarer"},{"🥤","Drikke"},{"🍽","Ferdigmat"}};
-        for (int r=0;r<cats.length;r+=2) {
-            LinearLayout row = new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL);
-            for (int k=0;k<2 && r+k<cats.length;k++) {
-                String[] cat=cats[r+k]; android.widget.Button b=new android.widget.Button(this);
-                b.setText(cat[0]+"  "+cat[1]); b.setAllCaps(false); b.setGravity(android.view.Gravity.START|android.view.Gravity.CENTER_VERTICAL);
-                b.setTextColor(ContextCompat.getColor(this,R.color.pb_text)); b.setBackgroundResource(R.drawable.bg_card);
-                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(72),1f); lp.setMargins(k==0?0:dp(5),dp(5),k==0?dp(5):0,dp(5)); row.addView(b,lp);
-                b.setOnClickListener(v -> { populateCategoryProducts(common, cat[1], search, prefs); search.setText(""); search.setHint(cat[1]+" – skriv vare"); commonPanel.setVisibility(View.VISIBLE); categoriesPanel.setVisibility(View.GONE); mostPanel.setVisibility(View.GONE); switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,0); });
+        populateCatalogIndex(quickCategoryGrid, categoryGrid, catalogIndexPanel, catalogProductsPanel,
+                catalogProductTitle, catalogProductGrid, search, prefs);
+        search.addTextChangedListener(new android.text.TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence text, int start, int before, int count) {
+                if (categoriesPanel.getVisibility() != View.VISIBLE) return;
+                String q = text == null ? "" : text.toString().trim();
+                if (q.isEmpty()) {
+                    catalogProductsPanel.setVisibility(View.GONE);
+                    catalogIndexPanel.setVisibility(View.VISIBLE);
+                    return;
+                }
+                java.util.List<LocalCatalog.Product> results = LocalCatalog.search(q);
+                catalogIndexPanel.setVisibility(View.GONE);
+                catalogProductsPanel.setVisibility(View.VISIBLE);
+                catalogProductTitle.setText(results.isEmpty() ? "Ingen treff" : "Søk · " + results.size() + " treff");
+                populateCatalogProductGrid(catalogProductGrid, results, prefs);
             }
-            categoryGrid.addView(row);
-        }
+            public void afterTextChanged(android.text.Editable e) {}
+        });
+        view.findViewById(R.id.catalogBack).setOnClickListener(v -> {
+            catalogProductsPanel.setVisibility(View.GONE);
+            catalogIndexPanel.setVisibility(View.VISIBLE);
+            search.setHint("Legg til vare");
+        });
 
         AlertDialog dialog = new AlertDialog.Builder(this).setView(view).create();
         dialog.setOnShowListener(d -> {
@@ -611,7 +739,16 @@ public class MainActivity extends AppCompatActivity {
         view.findViewById(R.id.quickBack).setOnClickListener(v -> dialog.dismiss());
         View.OnClickListener commonTab = v -> switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,0);
         tabCommon.setOnClickListener(commonTab);
-        tabCategories.setOnClickListener(v -> switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,1));
+        tabCategories.setOnClickListener(v -> {
+            switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,1);
+            String q = search.getText().toString().trim();
+            if (!q.isEmpty()) {
+                java.util.List<LocalCatalog.Product> results = LocalCatalog.search(q);
+                catalogIndexPanel.setVisibility(View.GONE); catalogProductsPanel.setVisibility(View.VISIBLE);
+                catalogProductTitle.setText(results.isEmpty() ? "Ingen treff" : "Søk · " + results.size() + " treff");
+                populateCatalogProductGrid(catalogProductGrid, results, prefs);
+            }
+        });
         tabMost.setOnClickListener(v -> switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,2));
         search.setOnEditorActionListener((v, actionId, event) -> { String n=search.getText().toString().trim(); if(n.isEmpty()) return false; addQuickItem(n,"",prefs); dialog.dismiss(); return true; });
         dialog.show();
@@ -630,20 +767,175 @@ public class MainActivity extends AppCompatActivity {
         android.widget.Button[] bs={a,b,c}; for(int i=0;i<bs.length;i++){ bs[i].setTextColor(i==selected?PaletteManager.current(this).primary:ContextCompat.getColor(this,R.color.pb_muted)); bs[i].setTypeface(bs[i].getTypeface(),i==selected?android.graphics.Typeface.BOLD:android.graphics.Typeface.NORMAL); }
     }
 
-    private void populateCategoryProducts(android.widget.LinearLayout parent, String category, android.widget.EditText search, android.content.SharedPreferences prefs) {
-        parent.removeAllViews();
-        String[] products;
-        switch (category) {
-            case "Frukt & grønt": products=new String[]{"Bananer","Epler","Tomater","Agurk","Paprika","Poteter","Løk","Gulrøtter"}; break;
-            case "Meieri & egg": products=new String[]{"Melk","Egg","Smør","Ost","Yoghurt","Fløte","Rømme"}; break;
-            case "Kjøtt": products=new String[]{"Kjøttdeig","Kyllingfilet","Bacon","Pølser","Karbonadedeig"}; break;
-            case "Bakeri": products=new String[]{"Brød","Rundstykker","Tortilla","Knekkebrød"}; break;
-            case "Frys": products=new String[]{"Frosne grønnsaker","Pizza","Is","Fiskefileter","Bær"}; break;
-            case "Tørrvarer": products=new String[]{"Ris","Pasta","Mel","Sukker","Havregryn","Hermetiske tomater"}; break;
-            case "Drikke": products=new String[]{"Kaffe","Te","Juice","Mineralvann","Saft"}; break;
-            default: products=new String[]{"Middag","Suppe","Salat","Pålegg"};
+    private void populateCatalogIndex(android.widget.LinearLayout quickGrid,
+                                      android.widget.LinearLayout sectionGrid,
+                                      View indexPanel,
+                                      View productsPanel,
+                                      TextView productTitle,
+                                      android.widget.LinearLayout productGrid,
+                                      android.widget.EditText search,
+                                      android.content.SharedPreferences prefs) {
+        quickGrid.removeAllViews();
+        sectionGrid.removeAllViews();
+        addCatalogCategoryRows(quickGrid, LocalCatalog.quickCategories(), indexPanel, productsPanel,
+                productTitle, productGrid, search, prefs, 2, true);
+
+        for (String section : LocalCatalog.sections()) {
+            TextView heading = new TextView(this);
+            heading.setText(section);
+            heading.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
+            heading.setTextSize(12);
+            heading.setTypeface(heading.getTypeface(), android.graphics.Typeface.BOLD);
+            heading.setPadding(0, dp(22), 0, dp(8));
+            sectionGrid.addView(heading);
+            addCatalogCategoryRows(sectionGrid, LocalCatalog.categoriesForSection(section), indexPanel,
+                    productsPanel, productTitle, productGrid, search, prefs, 3, false);
         }
-        for (String product : products) addSuggestionRow(parent, product, category, search, prefs);
+    }
+
+    private void addCatalogCategoryRows(android.widget.LinearLayout parent,
+                                        java.util.List<LocalCatalog.Category> categories,
+                                        View indexPanel,
+                                        View productsPanel,
+                                        TextView productTitle,
+                                        android.widget.LinearLayout productGrid,
+                                        android.widget.EditText search,
+                                        android.content.SharedPreferences prefs,
+                                        int columns,
+                                        boolean compact) {
+        for (int r = 0; r < categories.size(); r += columns) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.TOP);
+            for (int k = 0; k < columns; k++) {
+                if (r + k >= categories.size()) {
+                    View spacer = new View(this);
+                    LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(0, 1, 1f);
+                    sp.setMargins(dp(4), 0, dp(4), 0);
+                    row.addView(sp, sp);
+                    continue;
+                }
+                LocalCatalog.Category category = categories.get(r + k);
+                LinearLayout card = new LinearLayout(this);
+                card.setOrientation(LinearLayout.HORIZONTAL);
+                card.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                card.setPadding(dp(14), dp(10), dp(12), dp(10));
+                card.setBackgroundResource(R.drawable.bg_card);
+
+                TextView icon = new TextView(this);
+                icon.setText(category.icon);
+                icon.setTextSize(compact ? 24 : 30);
+                icon.setGravity(android.view.Gravity.CENTER);
+                card.addView(icon, new LinearLayout.LayoutParams(dp(compact ? 44 : 50), dp(compact ? 44 : 58)));
+
+                TextView label = new TextView(this);
+                label.setText(category.title);
+                label.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+                label.setTextSize(compact ? 15 : 14);
+                label.setTypeface(label.getTypeface(), android.graphics.Typeface.BOLD);
+                label.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                label.setMaxLines(2);
+                label.setPadding(dp(6), 0, dp(4), 0);
+                card.addView(label, new LinearLayout.LayoutParams(0, compact ? dp(58) : dp(78), 1f));
+
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, compact ? dp(70) : dp(96), 1f);
+                lp.setMargins(dp(4), dp(4), dp(4), dp(4));
+                row.addView(card, lp);
+                card.setOnClickListener(v -> showCatalogProducts(category, indexPanel, productsPanel,
+                        productTitle, productGrid, search, prefs));
+            }
+            parent.addView(row);
+        }
+    }
+
+    private void showCatalogProducts(LocalCatalog.Category category,
+                                     View indexPanel,
+                                     View productsPanel,
+                                     TextView title,
+                                     android.widget.LinearLayout productGrid,
+                                     android.widget.EditText search,
+                                     android.content.SharedPreferences prefs) {
+        indexPanel.setVisibility(View.GONE);
+        productsPanel.setVisibility(View.VISIBLE);
+        title.setText(category.icon + "  " + category.title);
+        search.setText("");
+        search.setHint("Søk i " + category.title.toLowerCase());
+        populateCatalogProductGrid(productGrid, category.products, prefs);
+    }
+
+    private void populateCatalogProductGrid(android.widget.LinearLayout parent,
+                                            java.util.List<LocalCatalog.Product> products,
+                                            android.content.SharedPreferences prefs) {
+        parent.removeAllViews();
+        final int columns = 3;
+        for (int r = 0; r < products.size(); r += columns) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.TOP);
+            for (int k = 0; k < columns; k++) {
+                if (r + k >= products.size()) {
+                    View spacer = new View(this);
+                    LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(0, 1, 1f);
+                    sp.setMargins(dp(4), 0, dp(4), 0);
+                    row.addView(sp, sp);
+                    continue;
+                }
+                LocalCatalog.Product product = products.get(r + k);
+                LinearLayout card = new LinearLayout(this);
+                card.setOrientation(LinearLayout.VERTICAL);
+                card.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+                card.setPadding(dp(8), dp(12), dp(8), dp(8));
+                card.setBackgroundResource(R.drawable.bg_card);
+
+                TextView icon = new TextView(this);
+                icon.setText(product.icon);
+                icon.setTextSize(38);
+                icon.setGravity(android.view.Gravity.CENTER);
+                card.addView(icon, new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, dp(58)));
+
+                TextView name = new TextView(this);
+                name.setText(product.name);
+                name.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+                name.setTextSize(13);
+                name.setGravity(android.view.Gravity.CENTER);
+                name.setTypeface(name.getTypeface(), android.graphics.Typeface.BOLD);
+                name.setMaxLines(2);
+                card.addView(name, new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, dp(46)));
+
+                TextView plus = new TextView(this);
+                plus.setText("+");
+                plus.setTextSize(24);
+                plus.setGravity(android.view.Gravity.CENTER);
+                plus.setTextColor(ContextCompat.getColor(this, R.color.pb_primary_text));
+                plus.setBackgroundResource(R.drawable.bg_primary);
+                tintPrimary(plus, PaletteManager.current(this).primary);
+                LinearLayout.LayoutParams plusLp = new LinearLayout.LayoutParams(dp(42), dp(42));
+                plusLp.gravity = android.view.Gravity.END;
+                card.addView(plus, plusLp);
+
+                View.OnClickListener add = v -> addCatalogProduct(product, prefs);
+                card.setOnClickListener(add);
+                plus.setOnClickListener(add);
+
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(158), 1f);
+                lp.setMargins(dp(4), dp(4), dp(4), dp(4));
+                row.addView(card, lp);
+            }
+            parent.addView(row);
+        }
+    }
+
+    private void addCatalogProduct(LocalCatalog.Product product, android.content.SharedPreferences prefs) {
+        ensureActiveTrip();
+        ShoppingItem item = new ShoppingItem();
+        item.name = product.name;
+        item.qty = 1;
+        item.unit = product.unit;
+        item.category = product.category;
+        items.add(item);
+        recordItemUsage(prefs, product.name);
+        saveAndRender();
+        android.widget.Toast.makeText(this, product.name + " lagt til", android.widget.Toast.LENGTH_SHORT).show();
     }
 
     private void addSuggestionRow(android.widget.LinearLayout parent, String name, String category, android.widget.EditText search, android.content.SharedPreferences prefs) {
@@ -735,6 +1027,16 @@ public class MainActivity extends AppCompatActivity {
         view.findViewById(R.id.addActionCancel).setOnClickListener(v -> dialog.dismiss());
         dialog.show();
         if (dialog.getWindow() != null) dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    private void startVoiceCatalogSearch(EditText search) {
+        Intent intent = new Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "nb-NO");
+        intent.putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "Si varen du vil finne");
+        voiceSearchTarget = search;
+        try { voiceSearchLauncher.launch(intent); }
+        catch (Exception e) { Toast.makeText(this, "Stemmesøk er ikke tilgjengelig på denne telefonen", Toast.LENGTH_SHORT).show(); }
     }
 
     private void startProductBarcodeScan() {
