@@ -1,3 +1,14 @@
+## v0.8.6
+- Hotfix: rettet Java-kompileringsfeil i katalogens grid-layout (`row.addView(spacer, sp)`).
+- Ingen funksjonelle endringer fra v0.8.5.
+
+## v0.8.5
+- Katalogtoppen har nå ett felles søkefelt for hele den lokale varekatalogen.
+- Live søk viser treff mens du skriver.
+- Ny mikrofonknapp bruker Androids talegjenkjenning og fyller søket automatisk.
+- Ny strekkodeknapp åpner eksisterende EAN/UPC-skanner og Kassal.app-oppslag direkte fra katalogen.
+- Kategorier og hurtigvalg fra v0.8.4 er beholdt.
+
 ## v0.8.4
 - Katalogen er bygget om til et komplett lokalt kataloghierarki.
 - Nye hurtigkategorier: Vegetar, Vegan, Keto, Glutenfri, Proteinrik, Frys og Populært.

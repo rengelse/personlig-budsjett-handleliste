@@ -812,7 +812,7 @@ public class MainActivity extends AppCompatActivity {
                     View spacer = new View(this);
                     LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(0, 1, 1f);
                     sp.setMargins(dp(4), 0, dp(4), 0);
-                    row.addView(sp, sp);
+                    row.addView(spacer, sp);
                     continue;
                 }
                 LocalCatalog.Category category = categories.get(r + k);
@@ -877,7 +877,7 @@ public class MainActivity extends AppCompatActivity {
                     View spacer = new View(this);
                     LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(0, 1, 1f);
                     sp.setMargins(dp(4), 0, dp(4), 0);
-                    row.addView(sp, sp);
+                    row.addView(spacer, sp);
                     continue;
                 }
                 LocalCatalog.Product product = products.get(r + k);

@@ -1,10 +1,8 @@
-# Personlig Budsjett Handleliste v0.8.5
+# Personlig Budsjett Handleliste v0.8.6
 
-## Nytt
-- Katalogtoppen har nå ett felles søkefelt for hele den lokale varekatalogen.
-- Live søk viser treff mens du skriver.
-- Ny mikrofonknapp bruker Androids talegjenkjenning og fyller søket automatisk.
-- Ny strekkodeknapp åpner eksisterende EAN/UPC-skanner og Kassal.app-oppslag direkte fra katalogen.
-- Kategorier og hurtigvalg fra v0.8.4 er beholdt.
+## Rettet
+- Rettet en Java-kompileringsfeil i den nye kataloglayouten fra v0.8.5.
+- Tomme plasser i 3-kolonne grids bruker nå korrekt spacer-View med tilhørende LayoutParams.
+- Ingen funksjonsendringer sammenlignet med v0.8.5.
 
-PB1/PB2, lokal LAN-overføring og Kassal.app-kontrakten er uendret.
+Søk, stemmesøk, strekkodeskanning, PB1/PB2, LAN-overføring og Kassal.app fungerer ellers som planlagt.
