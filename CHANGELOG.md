@@ -1,3 +1,13 @@
+# Changelog
+
+## v0.8.7
+- Redesignet hovedkategorier i katalogen med ikon øverst og kategorinavn under.
+- Utvidet den lokale/offline katalogen kraftig til flere hundre vareoppføringer.
+- Frukt & grønt, bakeri, meieri, tørrvarer, kjøtt/fisk, drikke, personlig pleie, hjem, rengjøring m.fl. har nå reelle omfattende vareutvalg.
+- Tekst- og stemmesøk bruker den samme komplette lokale katalogen.
+- Søket matcher både varenavn og kategori og håndterer norske tegn mer robust.
+- Ingen endring i PB1/PB2, LAN-overføring eller Kassal.app-integrasjonen.
+
 ## v0.8.6
 - Hotfix: rettet Java-kompileringsfeil i katalogens grid-layout (`row.addView(spacer, sp)`).
 - Ingen funksjonelle endringer fra v0.8.5.

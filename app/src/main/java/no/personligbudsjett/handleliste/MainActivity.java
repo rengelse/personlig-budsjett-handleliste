@@ -817,28 +817,38 @@ public class MainActivity extends AppCompatActivity {
                 }
                 LocalCatalog.Category category = categories.get(r + k);
                 LinearLayout card = new LinearLayout(this);
-                card.setOrientation(LinearLayout.HORIZONTAL);
-                card.setGravity(android.view.Gravity.CENTER_VERTICAL);
-                card.setPadding(dp(14), dp(10), dp(12), dp(10));
+                card.setOrientation(compact ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+                card.setGravity(android.view.Gravity.CENTER);
+                card.setPadding(compact ? dp(14) : dp(8), compact ? dp(10) : dp(12), compact ? dp(12) : dp(8), compact ? dp(10) : dp(10));
                 card.setBackgroundResource(R.drawable.bg_card);
 
                 TextView icon = new TextView(this);
                 icon.setText(category.icon);
-                icon.setTextSize(compact ? 24 : 30);
+                icon.setTextSize(compact ? 24 : 34);
                 icon.setGravity(android.view.Gravity.CENTER);
-                card.addView(icon, new LinearLayout.LayoutParams(dp(compact ? 44 : 50), dp(compact ? 44 : 58)));
+                if (compact) {
+                    card.addView(icon, new LinearLayout.LayoutParams(dp(44), dp(44)));
+                } else {
+                    card.addView(icon, new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, dp(54)));
+                }
 
                 TextView label = new TextView(this);
                 label.setText(category.title);
                 label.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
-                label.setTextSize(compact ? 15 : 14);
+                label.setTextSize(compact ? 15 : 13);
                 label.setTypeface(label.getTypeface(), android.graphics.Typeface.BOLD);
-                label.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                label.setGravity(compact ? android.view.Gravity.CENTER_VERTICAL : android.view.Gravity.CENTER);
                 label.setMaxLines(2);
-                label.setPadding(dp(6), 0, dp(4), 0);
-                card.addView(label, new LinearLayout.LayoutParams(0, compact ? dp(58) : dp(78), 1f));
+                label.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                if (compact) {
+                    label.setPadding(dp(6), 0, dp(4), 0);
+                    card.addView(label, new LinearLayout.LayoutParams(0, dp(58), 1f));
+                } else {
+                    label.setPadding(dp(4), dp(4), dp(4), 0);
+                    card.addView(label, new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, dp(46)));
+                }
 
-                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, compact ? dp(70) : dp(96), 1f);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, compact ? dp(70) : dp(122), 1f);
                 lp.setMargins(dp(4), dp(4), dp(4), dp(4));
                 row.addView(card, lp);
                 card.setOnClickListener(v -> showCatalogProducts(category, indexPanel, productsPanel,
