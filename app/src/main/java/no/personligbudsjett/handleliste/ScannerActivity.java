@@ -33,6 +33,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ScannerActivity extends AppCompatActivity {
     public static final String EXTRA_QR = "qr";
     public static final String EXTRA_PROMPT = "prompt";
+    public static final String EXTRA_MODE = "mode";
+    public static final String MODE_PAIRING_QR = "pairing_qr";
+    public static final String MODE_PRODUCT_BARCODE = "product_barcode";
 
     private PreviewView previewView;
     private TextView statusText;
@@ -45,7 +48,7 @@ public class ScannerActivity extends AppCompatActivity {
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
                 if (granted) startCamera();
                 else {
-                    statusText.setText("Kameratilgang er nødvendig for å skanne QR-koden.");
+                    statusText.setText("Kameratilgang er nødvendig for å skanne koden.");
                 }
             });
 
@@ -59,9 +62,19 @@ public class ScannerActivity extends AppCompatActivity {
         findViewById(R.id.closeButton).setOnClickListener(v -> finish());
 
         executor = Executors.newSingleThreadExecutor();
-        BarcodeScannerOptions options = new BarcodeScannerOptions.Builder()
-                .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
-                .build();
+        String mode = getIntent().getStringExtra(EXTRA_MODE);
+        BarcodeScannerOptions.Builder optionsBuilder = new BarcodeScannerOptions.Builder();
+        if (MODE_PRODUCT_BARCODE.equals(mode)) {
+            optionsBuilder.setBarcodeFormats(
+                    Barcode.FORMAT_EAN_13,
+                    Barcode.FORMAT_EAN_8,
+                    Barcode.FORMAT_UPC_A,
+                    Barcode.FORMAT_UPC_E
+            );
+        } else {
+            optionsBuilder.setBarcodeFormats(Barcode.FORMAT_QR_CODE);
+        }
+        BarcodeScannerOptions options = optionsBuilder.build();
         scanner = BarcodeScanning.getClient(options);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {

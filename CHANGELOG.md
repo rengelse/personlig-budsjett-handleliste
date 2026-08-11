@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.8.0
+- Ny Legg til vare-meny med Skriv inn, Velg fra katalog og Skann kode.
+- Strekkodeskanning støtter EAN-13, EAN-8, UPC-A og UPC-E i egen scanner-modus.
+- Integrasjon med Kassal.app for EAN-oppslag av produkt, butikk og gjeldende pris.
+- Egen Kassal.app-side under Innstillinger for API-nøkkel og tilkoblingstest.
+- Skannede produkter kan velges fra flere butikk/pristreff og legges til handlelisten.
+- PB1/PB2 og lokal PC-overføring er uendret.
+
+## v0.7.2
+- Redesignet Innstillinger til en ryddigere seksjonsbasert layout med store trykkflater.
+- Ny egen Utseende-side med valg mellom System, Lys og Mørk modus.
+- Ny Tema-side med fem lokale fargepaletter: Personlig Budsjett, Hav, Safir, Skog og Solnedgang.
+- Tema påvirker primærknapper, fremdrift, aktiv bunnnavigasjon, gruppevalg og handlemarkeringer.
+- Tema-siden har lokal forhåndsvisning før paletten lagres.
+- Ny innstilling «Hold skjermen på» mens Handleliste er åpen.
+- Utseendevalg og skjerminnstilling lagres permanent lokalt.
+- PB1/PB2, LAN-overføring og handledata er uendret.
+
+## v0.7.1
+- Ny permanent bunnnavigasjon: Handleliste, Historikk, Overfør og Innstillinger.
+- Egen Overfør-side for lokal PC-overføring.
+- Ny visuell empty state og fullskjerm «Legg til vare» med Vanlige, Kategorier og Mest brukt.
+- Lokal kategori-/basisvarekatalog og Nylig brukt under Vanlige.
+- PB1/PB2 og LAN-overføring er uendret.
+
 ## v0.7.0
 - Første større UI-redesign av Handleliste med kompakt fremdriftsheader og mindre dashboardpreg.
 - Flatere, tettere varerader med tydelig avkrysning, vare/mengde og høyrejustert pris.

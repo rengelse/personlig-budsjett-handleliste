@@ -1,14 +1,7 @@
-# Personlig Budsjett Handleliste v0.7.1
+# Personlig Budsjett Handleliste v0.8.0
 
-## Nytt
-- Ny permanent bunnnavigasjon: Handleliste, Historikk, Overfør og Innstillinger.
-- Egen Overfør-side for lokal PC-overføring.
-- Ny, mer visuell tomtilstand med tydelig «Motta fra PC» som hovedhandling.
-- «Legg til vare» er nå en fullskjerm hurtigflate.
-- Fanene Vanlige, Kategorier og Mest brukt gjør manuell vareinnlegging raskere.
-- Lokal kategorikatalog med vanlige basisvarer og kategoriikoner.
-- Nylig brukt vises direkte under Vanlige.
-- Mest brukt bruker eksisterende lokal bruksstatistikk.
+Denne versjonen utvider Legg til vare med tre tydelige valg: **Skriv inn**, **Velg fra katalog** og **Skann kode**.
 
-## Uendret
-PB1/PB2 v2 og lokal LAN-overføring er uendret.
+Strekkodeskanning bruker nå en egen produktmodus og kan slå opp EAN mot Kassal.app. Når et produkt finnes, vises tilgjengelige butikk-/pristreff slik at riktig variant kan legges til handlelisten. Kassal.app API-nøkkel konfigureres lokalt under **Innstillinger → Kassal.app**, med egen tilkoblingstest.
+
+PB1/PB2 og lokal LAN-overføring mot Personlig Budsjett Desktop er ikke endret.

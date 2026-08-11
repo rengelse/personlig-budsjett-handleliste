@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/pb_background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="22dp">
+        <TextView android:id="@+id/backButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="‹  Tema" android:textColor="@color/pb_text" android:textSize="28sp" android:textStyle="bold" android:paddingTop="12dp" android:paddingBottom="12dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Velg din favorittfargepalett" android:textColor="@color/pb_text" android:textSize="20sp" android:textStyle="bold"/>
+        <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:scrollbars="none">
+            <LinearLayout android:id="@+id/paletteContainer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal"/>
+        </HorizontalScrollView>
+        <LinearLayout android:id="@+id/previewCard" android:layout_width="match_parent" android:layout_height="250dp" android:layout_marginTop="34dp" android:background="@drawable/bg_card" android:orientation="vertical" android:padding="22dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="FORHÅNDSVISNING" android:textColor="@color/pb_muted" android:textSize="12sp" android:textStyle="bold"/>
+            <ProgressBar android:id="@+id/previewProgress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="8dp" android:layout_marginTop="22dp" android:max="100" android:progress="62"/>
+            <TextView android:id="@+id/previewItem1" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="○   Melk                                  24,90 kr" android:textColor="@color/pb_text" android:textSize="16sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/previewItem2" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:text="✓   Brød                                  39,90 kr" android:textColor="@color/pb_muted" android:textSize="16sp"/>
+            <Button android:id="@+id/previewButton" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="24dp" android:text="+  Legg til vare" android:textAllCaps="false" android:textColor="@color/pb_primary_text" android:textStyle="bold"/>
+        </LinearLayout>
+        <Button android:id="@+id/saveButton" android:layout_width="match_parent" android:layout_height="54dp" android:layout_marginTop="28dp" android:text="Lagre" android:textAllCaps="false" android:textColor="@color/pb_primary_text" android:textSize="17sp" android:textStyle="bold"/>
+    </LinearLayout>
+</ScrollView>

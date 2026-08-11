@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true" android:background="@color/pb_background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="64dp" android:gravity="center_vertical" android:orientation="horizontal">
+            <Button android:id="@+id/kassalBackButton" android:layout_width="52dp" android:layout_height="52dp" android:background="@android:color/transparent" android:text="‹" android:textAllCaps="false" android:textColor="@color/pb_text" android:textSize="34sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kassal.app" android:textColor="@color/pb_text" android:textSize="27sp" android:textStyle="bold"/>
+        </LinearLayout>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="INTEGRASJON" android:textColor="@color/pb_muted" android:textSize="13sp" android:textStyle="bold"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:background="@drawable/bg_card" android:orientation="vertical" android:padding="18dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="API-nøkkel" android:textColor="@color/pb_text" android:textSize="17sp" android:textStyle="bold"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="Brukes bare når du søker opp en skannet vare. Nøkkelen lagres lokalt i appen." android:textColor="@color/pb_muted" android:textSize="13sp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:gravity="center_vertical" android:orientation="horizontal">
+                <EditText android:id="@+id/kassalApiKeyInput" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:background="@drawable/bg_secondary" android:hint="Lim inn API-nøkkel" android:inputType="textPassword" android:paddingLeft="14dp" android:paddingRight="14dp" android:singleLine="true" android:textColor="@color/pb_text" android:textColorHint="@color/pb_muted"/>
+                <Button android:id="@+id/kassalToggleVisibility" android:layout_width="56dp" android:layout_height="52dp" android:layout_marginLeft="8dp" android:background="@drawable/bg_secondary" android:text="👁" android:textAllCaps="false" android:textSize="18sp"/>
+            </LinearLayout>
+            <TextView android:id="@+id/kassalStatusText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Ingen API-nøkkel er lagret" android:textColor="@color/pb_muted" android:textSize="13sp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:orientation="horizontal">
+                <Button android:id="@+id/kassalTestButton" android:layout_width="0dp" android:layout_height="50dp" android:layout_weight="1" android:background="@drawable/bg_secondary" android:text="Test tilkobling" android:textAllCaps="false" android:textColor="@color/pb_text" android:textStyle="bold"/>
+                <Space android:layout_width="8dp" android:layout_height="1dp"/>
+                <Button android:id="@+id/kassalSaveButton" android:layout_width="0dp" android:layout_height="50dp" android:layout_weight="1" android:background="@drawable/bg_primary" android:text="Lagre" android:textAllCaps="false" android:textColor="@color/pb_primary_text" android:textStyle="bold"/>
+            </LinearLayout>
+        </LinearLayout>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:text="Kassal.app brukes kun ved manuelt strekkodeoppslag. Handlelister mottatt fra Personlig Budsjett endres ikke automatisk." android:textColor="@color/pb_muted" android:textSize="13sp"/>
+    </LinearLayout>
+</ScrollView>

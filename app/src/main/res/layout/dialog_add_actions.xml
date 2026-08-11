@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:padding="18dp" android:background="@color/pb_surface">
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Legg til vare" android:textColor="@color/pb_text" android:textSize="22sp" android:textStyle="bold"/>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Hvordan vil du legge til varen?" android:textColor="@color/pb_muted" android:textSize="14sp"/>
+    <Button android:id="@+id/addActionWrite" android:layout_width="match_parent" android:layout_height="58dp" android:layout_marginTop="18dp" android:background="@drawable/bg_primary" android:gravity="start|center_vertical" android:paddingLeft="20dp" android:text="✎   Skriv inn" android:textAllCaps="false" android:textColor="@color/pb_primary_text" android:textSize="17sp" android:textStyle="bold"/>
+    <Button android:id="@+id/addActionCatalog" android:layout_width="match_parent" android:layout_height="58dp" android:layout_marginTop="9dp" android:background="@drawable/bg_secondary" android:gravity="start|center_vertical" android:paddingLeft="20dp" android:text="▦   Velg fra katalog" android:textAllCaps="false" android:textColor="@color/pb_text" android:textSize="17sp" android:textStyle="bold"/>
+    <Button android:id="@+id/addActionScan" android:layout_width="match_parent" android:layout_height="58dp" android:layout_marginTop="9dp" android:background="@drawable/bg_secondary" android:gravity="start|center_vertical" android:paddingLeft="20dp" android:text="▣   Skann kode" android:textAllCaps="false" android:textColor="@color/pb_text" android:textSize="17sp" android:textStyle="bold"/>
+    <Button android:id="@+id/addActionCancel" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="10dp" android:background="@android:color/transparent" android:text="Avbryt" android:textAllCaps="false" android:textColor="@color/pb_muted"/>
+</LinearLayout>

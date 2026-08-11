@@ -282,95 +282,139 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:paddingTop="18dp"
+            android:paddingBottom="28dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Innstillinger"
                 android:textColor="@color/pb_text"
-                android:textSize="25sp"
+                android:textSize="28sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="GENERELT"
+                android:textColor="@color/pb_muted"
+                android:textSize="13sp"
                 android:textStyle="bold"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="10dp"
                 android:background="@drawable/bg_card"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Om og oppdateringer"
-                    android:textColor="@color/pb_text"
-                    android:textSize="17sp"
-                    android:textStyle="bold"/>
+                <LinearLayout
+                    android:id="@+id/appearanceSettingsRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="74dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="18dp"
+                    android:paddingRight="18dp"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Utseende" android:textColor="@color/pb_text" android:textSize="17sp" android:textStyle="bold"/>
+                        <TextView android:id="@+id/appearanceSummaryText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="System · Personlig Budsjett" android:textColor="@color/pb_muted" android:textSize="13sp"/>
+                    </LinearLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="›" android:textColor="@color/pb_muted" android:textSize="32sp"/>
+                </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Personlig Budsjett Handleliste"
-                    android:textColor="@color/pb_muted"
-                    android:textSize="13sp"/>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/pb_border"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_height="78dp"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                        android:text="Installert versjon" android:textColor="@color/pb_muted" android:textSize="14sp"/>
-                    <TextView android:id="@+id/settingsVersionText" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="—" android:textColor="@color/pb_text" android:textSize="14sp" android:textStyle="bold"/>
+                    android:orientation="horizontal"
+                    android:paddingLeft="18dp"
+                    android:paddingRight="14dp">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hold skjermen på" android:textColor="@color/pb_text" android:textSize="17sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="Mens handlelisten er åpen" android:textColor="@color/pb_muted" android:textSize="13sp"/>
+                    </LinearLayout>
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/keepScreenOnSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
                 </LinearLayout>
+            </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" android:gravity="center_vertical" android:orientation="horizontal">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                        android:text="Nyeste versjon" android:textColor="@color/pb_muted" android:textSize="14sp"/>
-                    <TextView android:id="@+id/latestVersionText" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="—" android:textColor="@color/pb_text" android:textSize="14sp" android:textStyle="bold"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="INTEGRASJONER"
+                android:textColor="@color/pb_muted"
+                android:textSize="13sp"
+                android:textStyle="bold"/>
+
+            <LinearLayout
+                android:id="@+id/kassalSettingsRow"
+                android:layout_width="match_parent"
+                android:layout_height="78dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingLeft="18dp"
+                android:paddingRight="18dp"
+                android:clickable="true"
+                android:focusable="true">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kassal.app" android:textColor="@color/pb_text" android:textSize="17sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="API-nøkkel for strekkodeoppslag" android:textColor="@color/pb_muted" android:textSize="13sp"/>
                 </LinearLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="›" android:textColor="@color/pb_muted" android:textSize="32sp"/>
+            </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" android:gravity="center_vertical" android:orientation="horizontal">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                        android:text="Status" android:textColor="@color/pb_muted" android:textSize="14sp"/>
-                    <TextView android:id="@+id/updateStatusText" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:gravity="end" android:text="Ikke kontrollert" android:textColor="@color/pb_muted"
-                        android:textSize="14sp" android:textStyle="bold"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="APP"
+                android:textColor="@color/pb_muted"
+                android:textSize="13sp"
+                android:textStyle="bold"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Om og oppdateringer" android:textColor="@color/pb_text" android:textSize="17sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Personlig Budsjett Handleliste" android:textColor="@color/pb_muted" android:textSize="13sp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:gravity="center_vertical" android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Installert versjon" android:textColor="@color/pb_muted" android:textSize="14sp"/>
+                    <TextView android:id="@+id/settingsVersionText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="@color/pb_text" android:textSize="14sp" android:textStyle="bold"/>
                 </LinearLayout>
-
-                <ProgressBar
-                    android:id="@+id/updateDownloadProgress"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent" android:layout_height="7dp"
-                    android:layout_marginTop="12dp" android:max="100" android:progress="0"
-                    android:progressTint="@color/pb_primary" android:progressBackgroundTint="@color/pb_border"
-                    android:visibility="gone"/>
-
-                <LinearLayout
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp" android:orientation="horizontal">
-                    <Button android:id="@+id/releaseInfoButton" android:layout_width="0dp" android:layout_height="48dp"
-                        android:layout_weight="1" android:background="@drawable/bg_secondary" android:enabled="false"
-                        android:text="Release-info" android:textAllCaps="false" android:textColor="@color/pb_text" android:textStyle="bold"/>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:gravity="center_vertical" android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Nyeste versjon" android:textColor="@color/pb_muted" android:textSize="14sp"/>
+                    <TextView android:id="@+id/latestVersionText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="@color/pb_text" android:textSize="14sp" android:textStyle="bold"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:gravity="center_vertical" android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Status" android:textColor="@color/pb_muted" android:textSize="14sp"/>
+                    <TextView android:id="@+id/updateStatusText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:text="Ikke kontrollert" android:textColor="@color/pb_muted" android:textSize="14sp" android:textStyle="bold"/>
+                </LinearLayout>
+                <ProgressBar android:id="@+id/updateDownloadProgress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="7dp" android:layout_marginTop="12dp" android:max="100" android:progress="0" android:progressTint="@color/pb_primary" android:progressBackgroundTint="@color/pb_border" android:visibility="gone"/>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:orientation="horizontal">
+                    <Button android:id="@+id/releaseInfoButton" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:background="@drawable/bg_secondary" android:enabled="false" android:text="Release-info" android:textAllCaps="false" android:textColor="@color/pb_text" android:textStyle="bold"/>
                     <Space android:layout_width="8dp" android:layout_height="1dp"/>
-                    <Button android:id="@+id/checkUpdatesButton" android:layout_width="0dp" android:layout_height="48dp"
-                        android:layout_weight="1" android:background="@drawable/bg_secondary"
-                        android:text="Se etter oppdatering" android:textAllCaps="false" android:textColor="@color/pb_text" android:textStyle="bold"/>
+                    <Button android:id="@+id/checkUpdatesButton" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:background="@drawable/bg_secondary" android:text="Se etter oppdatering" android:textAllCaps="false" android:textColor="@color/pb_text" android:textStyle="bold"/>
                 </LinearLayout>
-
-                <Button android:id="@+id/installUpdateButton" android:layout_width="match_parent" android:layout_height="50dp"
-                    android:layout_marginTop="10dp" android:background="@drawable/bg_primary" android:text="Oppdater"
-                    android:textAllCaps="false" android:textColor="@color/pb_primary_text" android:textStyle="bold"
-                    android:visibility="gone"/>
+                <Button android:id="@+id/installUpdateButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="10dp" android:background="@drawable/bg_primary" android:text="Oppdater" android:textAllCaps="false" android:textColor="@color/pb_primary_text" android:textStyle="bold" android:visibility="gone"/>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

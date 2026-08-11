@@ -25,6 +25,11 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+
+        <activity android:name=".KassalSettingsActivity" android:exported="false" />
+        <activity android:name=".ThemeActivity" android:exported="false" />
+        <activity android:name=".AppearanceActivity" android:exported="false" />
+
         <activity
             android:name=".ScannerActivity"
             android:screenOrientation="portrait"

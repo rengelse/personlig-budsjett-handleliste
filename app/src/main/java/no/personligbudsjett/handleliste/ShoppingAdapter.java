@@ -1,6 +1,7 @@
 package no.personligbudsjett.handleliste;
 
 import android.graphics.Paint;
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -82,6 +83,7 @@ public class ShoppingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             HeaderHolder h = (HeaderHolder) holder;
             h.text.setText(row.header);
             h.icon.setText(groupingByStore && !row.header.startsWith("Ferdig") ? "▣" : "◇");
+            h.icon.setTextColor(PaletteManager.current(h.root.getContext()).primary);
             int groupSize = row.group == null ? 0 : row.group.size();
             h.count.setText(groupSize + (groupSize == 1 ? " vare" : " varer"));
 
@@ -115,6 +117,7 @@ public class ShoppingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         h.price.setText(item.estimatedPrice == null ? "—" : currency.format(item.estimatedPrice));
 
         h.check.setOnCheckedChangeListener(null);
+        h.check.setButtonTintList(ColorStateList.valueOf(PaletteManager.current(h.root.getContext()).primary));
         h.check.setChecked(item.checked);
         h.check.setOnCheckedChangeListener((button, checked) -> listener.onCheckedChanged(item, checked));
 

@@ -1,11 +1,18 @@
-# Personlig Budsjett Handleliste v0.7.1
+# Personlig Budsjett Handleliste
+
+**Gjeldende versjon: v0.8.0**
 
 Android-handleappen for **Personlig Budsjett**. Desktop planlegger handlelisten; mobilen mottar den direkte fra Personlig Budsjett over samme lokale Wi-Fi/LAN og brukes under handleturen.
 
 
-## Handleflate v0.7.1
+## Handleflate
 
 Handlelisten er nå appens tydelige hovedflate: kompakt fremdrift øverst, flate varerader, butikk/kategori som små filtre og «Legg til vare» som primær tommelhandling. Når listen er tom vises en egen startflate med direkte tilgang til lokal PC-overføring eller manuell vare.
+
+
+## Utseende og innstillinger
+
+Fra v0.7.2 har appen egen Utseende-side med System/Lys/Mørk modus og lokale fargepaletter. Valgt palett brukes på sentrale aksentelementer som primærknapper, fremdrift, aktiv navigasjon og handlemarkeringer. Innstillingen «Hold skjermen på» kan holde telefonen våken mens Handleliste er åpen. Alle valg lagres lokalt.
 
 ## Lokal mobiloverføring
 
@@ -39,3 +46,7 @@ Release-signering skal alltid bruke samme permanente signing key via GitHub Acti
 - «Mest brukt» sorteres etter hvor mange ganger varen er lagt til manuelt.
 - «Nylig brukt» sorteres etter faktisk siste-brukt-tidspunkt.
 - Historikken beholdes mellom appstarter og er uavhengig av aktiv handleliste.
+
+
+## Kassal.app-integrasjon (v0.8.0)
+Legg til vare tilbyr Skriv inn, Velg fra katalog og Skann kode. Strekkodeskanning gjør EAN-oppslag mot Kassal.app når en API-nøkkel er konfigurert under Innstillinger. API-nøkkelen lagres lokalt på telefonen og bygges ikke inn i APK-en.

@@ -14,10 +14,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.view.WindowManager;
+import android.graphics.drawable.GradientDrawable;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -75,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout historyContainer;
     private View settingsPanel;
     private TextView settingsVersionText;
+    private TextView appearanceSummaryText;
+    private androidx.appcompat.widget.SwitchCompat keepScreenOnSwitch;
     private android.widget.Button navOverviewButton;
     private android.widget.Button navListButton;
     private android.widget.Button navScanButton;
@@ -112,8 +117,17 @@ public class MainActivity extends AppCompatActivity {
                 else if (mode == TransferMode.SEND_TO_PC && trip != null) sendTripToPc(trip, raw);
             });
 
+    private final ActivityResultLauncher<Intent> productScannerLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() != RESULT_OK || result.getData() == null) return;
+                String raw = result.getData().getStringExtra(ScannerActivity.EXTRA_QR);
+                if (raw == null || raw.trim().isEmpty()) return;
+                lookupScannedProduct(raw.trim());
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        applySavedAppearanceMode();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -169,6 +183,8 @@ public class MainActivity extends AppCompatActivity {
         historyContainer = findViewById(R.id.historyContainer);
         settingsPanel = findViewById(R.id.settingsPanel);
         settingsVersionText = findViewById(R.id.settingsVersionText);
+        appearanceSummaryText = findViewById(R.id.appearanceSummaryText);
+        keepScreenOnSwitch = findViewById(R.id.keepScreenOnSwitch);
         updateStatusText = findViewById(R.id.updateStatusText);
         latestVersionText = findViewById(R.id.latestVersionText);
         releaseInfoButton = findViewById(R.id.releaseInfoButton);
@@ -194,8 +210,8 @@ public class MainActivity extends AppCompatActivity {
         });
         list.setAdapter(adapter);
 
-        findViewById(R.id.addButton).setOnClickListener(v -> showQuickAdd());
-        findViewById(R.id.emptyAddButton).setOnClickListener(v -> showQuickAdd());
+        findViewById(R.id.addButton).setOnClickListener(v -> showAddItemActions());
+        findViewById(R.id.emptyAddButton).setOnClickListener(v -> showAddItemActions());
         findViewById(R.id.emptyReceiveButton).setOnClickListener(v -> startReceiveFromPc());
         clearDoneButton.setOnClickListener(v -> clearDone());
         editActualTotalButton.setOnClickListener(v -> editActualTotal());
@@ -208,11 +224,18 @@ public class MainActivity extends AppCompatActivity {
         navOverviewButton.setOnClickListener(v -> showOverview());
         navListButton.setOnClickListener(v -> showList());
         navSettingsButton.setOnClickListener(v -> showSettings());
+        findViewById(R.id.appearanceSettingsRow).setOnClickListener(v -> startActivity(new Intent(this, AppearanceActivity.class)));
+        findViewById(R.id.kassalSettingsRow).setOnClickListener(v -> startActivity(new Intent(this, KassalSettingsActivity.class)));
+        keepScreenOnSwitch.setChecked(PaletteManager.keepScreenOn(this));
+        keepScreenOnSwitch.setOnCheckedChangeListener((button, checked) -> { PaletteManager.setKeepScreenOn(this, checked); updateKeepScreenOn(); });
         findViewById(R.id.continueShoppingButton).setOnClickListener(v -> showList());
         checkUpdatesButton.setOnClickListener(v -> checkForUpdates(false));
         releaseInfoButton.setOnClickListener(v -> showReleaseInfo());
         installUpdateButton.setOnClickListener(v -> startUpdateDownload());
 
+        refreshAppearanceSummary();
+        applyPaletteToMainUi();
+        updateKeepScreenOn();
         render();
         checkForUpdates(true);
     }
@@ -331,6 +354,68 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override protected void onResume() {
+        super.onResume();
+        if (appearanceSummaryText != null) refreshAppearanceSummary();
+        if (keepScreenOnSwitch != null) keepScreenOnSwitch.setChecked(PaletteManager.keepScreenOn(this));
+        applyPaletteToMainUi();
+        updateKeepScreenOn();
+    }
+
+    private void applySavedAppearanceMode() {
+        String mode = PaletteManager.mode(this);
+        int value = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+        if ("light".equals(mode)) value = AppCompatDelegate.MODE_NIGHT_NO;
+        else if ("dark".equals(mode)) value = AppCompatDelegate.MODE_NIGHT_YES;
+        AppCompatDelegate.setDefaultNightMode(value);
+    }
+
+    private void refreshAppearanceSummary() {
+        if (appearanceSummaryText == null) return;
+        String mode = PaletteManager.mode(this);
+        String modeText = "System";
+        if ("light".equals(mode)) modeText = "Lys";
+        else if ("dark".equals(mode)) modeText = "Mørk";
+        appearanceSummaryText.setText(modeText + " · " + PaletteManager.current(this).name);
+    }
+
+    private void updateKeepScreenOn() {
+        boolean listVisible = findViewById(R.id.topScroll) != null && findViewById(R.id.topScroll).getVisibility() == View.VISIBLE;
+        if (PaletteManager.keepScreenOn(this) && listVisible) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    private void applyPaletteToMainUi() {
+        if (navListButton == null) return;
+        PaletteManager.Palette p = PaletteManager.current(this);
+        progressBar.setProgressTintList(android.content.res.ColorStateList.valueOf(p.primary));
+        updateDownloadProgress.setProgressTintList(android.content.res.ColorStateList.valueOf(p.primary));
+        expectedTotalText.setTextColor(p.primary);
+        tintPrimary(findViewById(R.id.addButton), p.primary);
+        tintPrimary(findViewById(R.id.emptyReceiveButton), p.primary);
+        tintPrimary(findViewById(R.id.transferReceiveButton), p.primary);
+        tintPrimary(completeTripButton, p.primary);
+        if (installUpdateButton != null) tintPrimary(installUpdateButton, p.primary);
+        setActiveNav(currentActiveNav());
+        updateGroupingButtons();
+    }
+
+    private android.widget.Button currentActiveNav() {
+        if (settingsPanel.getVisibility() == View.VISIBLE) return navSettingsButton;
+        if (transferPanel.getVisibility() == View.VISIBLE) return navScanButton;
+        if (overviewPanel.getVisibility() == View.VISIBLE) return navOverviewButton;
+        return navListButton;
+    }
+
+    private void tintPrimary(View view, int color) {
+        if (view == null) return;
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(color);
+        bg.setCornerRadius(dp(13));
+        view.setBackground(bg);
+        if (view instanceof TextView) ((TextView) view).setTextColor(PaletteManager.contrastText(color));
+    }
+
     private void showOverview() {
         findViewById(R.id.topScroll).setVisibility(View.GONE);
         findViewById(R.id.list).setVisibility(View.GONE);
@@ -341,6 +426,7 @@ public class MainActivity extends AppCompatActivity {
         overviewPanel.setVisibility(View.VISIBLE);
         renderHistory();
         setActiveNav(navOverviewButton);
+        updateKeepScreenOn();
     }
 
     private void showList() {
@@ -350,6 +436,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.topScroll).setVisibility(View.VISIBLE);
         applyListEmptyState();
         setActiveNav(navListButton);
+        updateKeepScreenOn();
     }
 
     private void showTransfer() {
@@ -361,6 +448,7 @@ public class MainActivity extends AppCompatActivity {
         emptyState.setVisibility(View.GONE);
         transferPanel.setVisibility(View.VISIBLE);
         setActiveNav(navScanButton);
+        updateKeepScreenOn();
     }
 
     private void showSettings() {
@@ -372,6 +460,7 @@ public class MainActivity extends AppCompatActivity {
         emptyState.setVisibility(View.GONE);
         settingsPanel.setVisibility(View.VISIBLE);
         setActiveNav(navSettingsButton);
+        updateKeepScreenOn();
     }
 
     private void applyListEmptyState() {
@@ -387,12 +476,12 @@ public class MainActivity extends AppCompatActivity {
         android.widget.Button[] buttons = {navOverviewButton, navListButton, navScanButton, navSettingsButton};
         for (android.widget.Button button : buttons) {
             boolean selected = button == active;
-            button.setTextColor(ContextCompat.getColor(this, selected ? R.color.pb_primary : R.color.pb_muted));
+            button.setTextColor(selected ? PaletteManager.current(this).primary : ContextCompat.getColor(this, R.color.pb_muted));
             button.setTypeface(button.getTypeface(), selected ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         }
     }
 
-    private void showQuickAdd() {
+    private void showQuickAdd(int initialTab, boolean focusSearch) {
         View view = getLayoutInflater().inflate(R.layout.dialog_add_item, null);
         android.widget.EditText search = view.findViewById(R.id.quickSearch);
         android.widget.LinearLayout recent = view.findViewById(R.id.recentList);
@@ -453,11 +542,18 @@ public class MainActivity extends AppCompatActivity {
         search.setOnEditorActionListener((v, actionId, event) -> { String n=search.getText().toString().trim(); if(n.isEmpty()) return false; addQuickItem(n,"",prefs); dialog.dismiss(); return true; });
         dialog.show();
         if (dialog.getWindow()!=null) { dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT); dialog.getWindow().setBackgroundDrawableResource(R.color.pb_background); }
+        if (initialTab == 1) switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,1);
+        else if (initialTab == 2) switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,2);
+        else switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,0);
+        if (focusSearch) {
+            search.requestFocus();
+            if (dialog.getWindow() != null) dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
     }
 
     private void switchQuickTab(View common, View cats, View most, android.widget.Button a, android.widget.Button b, android.widget.Button c, int selected) {
         common.setVisibility(selected==0?View.VISIBLE:View.GONE); cats.setVisibility(selected==1?View.VISIBLE:View.GONE); most.setVisibility(selected==2?View.VISIBLE:View.GONE);
-        android.widget.Button[] bs={a,b,c}; for(int i=0;i<bs.length;i++){ bs[i].setTextColor(ContextCompat.getColor(this,i==selected?R.color.pb_primary:R.color.pb_muted)); bs[i].setTypeface(bs[i].getTypeface(),i==selected?android.graphics.Typeface.BOLD:android.graphics.Typeface.NORMAL); }
+        android.widget.Button[] bs={a,b,c}; for(int i=0;i<bs.length;i++){ bs[i].setTextColor(i==selected?PaletteManager.current(this).primary:ContextCompat.getColor(this,R.color.pb_muted)); bs[i].setTypeface(bs[i].getTypeface(),i==selected?android.graphics.Typeface.BOLD:android.graphics.Typeface.NORMAL); }
     }
 
     private void populateCategoryProducts(android.widget.LinearLayout parent, String category, android.widget.EditText search, android.content.SharedPreferences prefs) {
@@ -478,7 +574,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void addSuggestionRow(android.widget.LinearLayout parent, String name, String category, android.widget.EditText search, android.content.SharedPreferences prefs) {
         LinearLayout row=new LinearLayout(this); row.setGravity(android.view.Gravity.CENTER_VERTICAL); row.setPadding(0,dp(4),0,dp(4));
-        android.widget.Button plus=new android.widget.Button(this); plus.setText("+"); plus.setTextSize(24); plus.setTextColor(ContextCompat.getColor(this,R.color.pb_primary_text)); plus.setBackgroundResource(R.drawable.bg_primary);
+        android.widget.Button plus=new android.widget.Button(this); plus.setText("+"); plus.setTextSize(24); plus.setTextColor(ContextCompat.getColor(this,R.color.pb_primary_text)); plus.setBackgroundResource(R.drawable.bg_primary); tintPrimary(plus, PaletteManager.current(this).primary);
         row.addView(plus,new LinearLayout.LayoutParams(dp(48),dp(48)));
         TextView label=new TextView(this); label.setText(name); label.setTextSize(18); label.setTextColor(ContextCompat.getColor(this,R.color.pb_text)); label.setGravity(android.view.Gravity.CENTER_VERTICAL); label.setPadding(dp(16),0,0,0);
         row.addView(label,new LinearLayout.LayoutParams(0,dp(58),1f));
@@ -555,6 +651,151 @@ public class MainActivity extends AppCompatActivity {
         parent.addView(b, lp);
     }
 
+
+    private void showAddItemActions() {
+        View view = getLayoutInflater().inflate(R.layout.dialog_add_actions, null);
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(view).create();
+        view.findViewById(R.id.addActionWrite).setOnClickListener(v -> { dialog.dismiss(); showQuickAdd(0, true); });
+        view.findViewById(R.id.addActionCatalog).setOnClickListener(v -> { dialog.dismiss(); showQuickAdd(1, false); });
+        view.findViewById(R.id.addActionScan).setOnClickListener(v -> { dialog.dismiss(); startProductBarcodeScan(); });
+        view.findViewById(R.id.addActionCancel).setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+        if (dialog.getWindow() != null) dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    private void startProductBarcodeScan() {
+        if (!KassalApi.hasApiKey(this)) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Kassal.app API-nøkkel mangler")
+                    .setMessage("For å slå opp produkter fra strekkode må du først legge inn API-nøkkelen under Innstillinger → Kassal.app.")
+                    .setNegativeButton("Avbryt", null)
+                    .setPositiveButton("Åpne innstillinger", (d, w) -> startActivity(new Intent(this, KassalSettingsActivity.class)))
+                    .show();
+            return;
+        }
+        Intent intent = new Intent(this, ScannerActivity.class);
+        intent.putExtra(ScannerActivity.EXTRA_PROMPT, "Hold strekkoden innenfor rammen");
+        intent.putExtra(ScannerActivity.EXTRA_MODE, ScannerActivity.MODE_PRODUCT_BARCODE);
+        productScannerLauncher.launch(intent);
+    }
+
+    private void lookupScannedProduct(String barcode) {
+        AlertDialog progress = transferProgress("Søker etter produkt …", "Slår opp " + barcode + " hos Kassal.app.");
+        new Thread(() -> {
+            try {
+                List<KassalApi.Product> products = KassalApi.lookupEan(this, barcode);
+                runOnUiThread(() -> {
+                    progress.dismiss();
+                    if (products.isEmpty()) {
+                        new AlertDialog.Builder(this)
+                                .setTitle("Produkt ikke funnet")
+                                .setMessage("Kassal.app fant ingen produkter med strekkode " + barcode + ".")
+                                .setNegativeButton("Lukk", null)
+                                .setPositiveButton("Skriv inn manuelt", (d, w) -> showQuickAdd(0, true))
+                                .show();
+                    } else {
+                        showScannedProductResults(barcode, products);
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progress.dismiss();
+                    new AlertDialog.Builder(this)
+                            .setTitle("Kunne ikke slå opp produktet")
+                            .setMessage(e.getMessage())
+                            .setNegativeButton("Lukk", null)
+                            .setPositiveButton("Kassal.app-innstillinger", (d, w) -> startActivity(new Intent(this, KassalSettingsActivity.class)))
+                            .show();
+                });
+            }
+        }, "kassal-ean").start();
+    }
+
+    private void showScannedProductResults(String barcode, List<KassalApi.Product> products) {
+        ScrollView scroll = new ScrollView(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(dp(18), dp(8), dp(18), dp(8));
+        scroll.addView(root);
+
+        TextView info = new TextView(this);
+        info.setText(products.size() == 1 ? "1 treff" : products.size() + " treff – velg butikk/pris");
+        info.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
+        info.setTextSize(13);
+        info.setPadding(0, 0, 0, dp(8));
+        root.addView(info);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Skannet produkt")
+                .setView(scroll)
+                .setNegativeButton("Avbryt", null)
+                .create();
+
+        for (KassalApi.Product product : products) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.VERTICAL);
+            row.setPadding(dp(16), dp(13), dp(16), dp(13));
+            row.setBackgroundResource(R.drawable.bg_card);
+            TextView name = new TextView(this);
+            name.setText(product.name);
+            name.setTextColor(ContextCompat.getColor(this, R.color.pb_text));
+            name.setTextSize(16);
+            name.setTypeface(name.getTypeface(), android.graphics.Typeface.BOLD);
+            row.addView(name);
+            TextView sub = new TextView(this);
+            String subtitle = product.subtitle();
+            if (subtitle.isBlank()) subtitle = barcode;
+            sub.setText(subtitle);
+            sub.setTextColor(ContextCompat.getColor(this, R.color.pb_muted));
+            sub.setTextSize(13);
+            sub.setPadding(0, dp(4), 0, 0);
+            row.addView(sub);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            lp.setMargins(0, dp(5), 0, dp(5));
+            root.addView(row, lp);
+            row.setOnClickListener(v -> {
+                addKassalProduct(product, barcode);
+                dialog.dismiss();
+            });
+        }
+        dialog.show();
+    }
+
+    private void addKassalProduct(KassalApi.Product product, String barcode) {
+        ensureActiveTrip();
+        ShoppingItem item = new ShoppingItem();
+        item.name = product.name;
+        item.qty = 1;
+        item.unit = "stk";
+        item.category = "Annet";
+        item.store = product.store == null ? "" : product.store;
+        item.ean = product.ean == null || product.ean.isBlank() ? barcode : product.ean;
+        item.estimatedPrice = product.price;
+        items.add(item);
+        android.content.SharedPreferences prefs = getSharedPreferences("item_usage", MODE_PRIVATE);
+        recordItemUsage(prefs, item.name);
+        saveAndRender();
+        android.widget.Toast.makeText(this, item.name + " lagt til", android.widget.Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateGroupingButtons() {
+        if (groupStoreButton == null || groupCategoryButton == null) return;
+        int accent = PaletteManager.current(this).primary;
+        int text = ContextCompat.getColor(this, R.color.pb_text);
+        int primaryText = PaletteManager.contrastText(accent);
+        if (groupByStore) {
+            tintPrimary(groupStoreButton, accent);
+            groupCategoryButton.setBackgroundResource(R.drawable.bg_chip);
+            groupStoreButton.setTextColor(primaryText);
+            groupCategoryButton.setTextColor(text);
+        } else {
+            groupStoreButton.setBackgroundResource(R.drawable.bg_chip);
+            tintPrimary(groupCategoryButton, accent);
+            groupStoreButton.setTextColor(text);
+            groupCategoryButton.setTextColor(primaryText);
+        }
+    }
+
     private void setGrouping(boolean byStore) {
         groupByStore = byStore;
         getPreferences(MODE_PRIVATE).edit().putBoolean("group_by_store", byStore).apply();
@@ -566,6 +807,7 @@ public class MainActivity extends AppCompatActivity {
         pendingTransferTrip = null;
         Intent intent = new Intent(this, ScannerActivity.class);
         intent.putExtra(ScannerActivity.EXTRA_PROMPT, "Skann «Send til mobil»-QR fra Personlig Budsjett på PC");
+        intent.putExtra(ScannerActivity.EXTRA_MODE, ScannerActivity.MODE_PAIRING_QR);
         scannerLauncher.launch(intent);
     }
 
@@ -581,6 +823,7 @@ public class MainActivity extends AppCompatActivity {
         pendingTransferTrip = trip;
         Intent intent = new Intent(this, ScannerActivity.class);
         intent.putExtra(ScannerActivity.EXTRA_PROMPT, "Skann «Motta fra mobil»-QR fra Personlig Budsjett på PC");
+        intent.putExtra(ScannerActivity.EXTRA_MODE, ScannerActivity.MODE_PAIRING_QR);
         scannerLauncher.launch(intent);
     }
 
@@ -952,10 +1195,7 @@ public class MainActivity extends AppCompatActivity {
         editActualTotalButton.setEnabled(activeTrip != null && !items.isEmpty());
         completeTripButton.setEnabled(activeTrip != null && !items.isEmpty());
 
-        groupStoreButton.setBackgroundResource(groupByStore ? R.drawable.bg_chip_active : R.drawable.bg_chip);
-        groupCategoryButton.setBackgroundResource(groupByStore ? R.drawable.bg_chip : R.drawable.bg_chip_active);
-        groupStoreButton.setTextColor(ContextCompat.getColor(this, groupByStore ? R.color.pb_primary_text : R.color.pb_text));
-        groupCategoryButton.setTextColor(ContextCompat.getColor(this, groupByStore ? R.color.pb_text : R.color.pb_primary_text));
+        updateGroupingButtons();
 
         Map<String,List<ShoppingItem>> grouped = new LinkedHashMap<>();
         items.stream()
