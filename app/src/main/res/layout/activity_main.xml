@@ -53,7 +53,7 @@
                         android:id="@+id/versionText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="v0.7.0"
+                        android:text="v0.7.1"
                         android:textColor="@color/pb_muted"
                         android:textSize="11sp"/>
                 </LinearLayout>
@@ -181,8 +181,9 @@
         android:paddingLeft="32dp"
         android:paddingRight="32dp"
         android:visibility="gone">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Handlelisten er tom" android:textColor="@color/pb_text" android:textSize="21sp" android:textStyle="bold"/>
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:gravity="center" android:text="Motta en handleliste fra Personlig Budsjett på PC, eller legg til en vare manuelt." android:textColor="@color/pb_muted" android:textSize="14sp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="✓" android:textColor="@color/pb_primary" android:textSize="72sp" android:textStyle="bold"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Klar for neste handletur?" android:textColor="@color/pb_text" android:textSize="22sp" android:textStyle="bold"/>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:gravity="center" android:text="Motta handlelisten fra Personlig Budsjett på PC, eller legg til varer manuelt." android:textColor="@color/pb_muted" android:textSize="14sp"/>
         <Button android:id="@+id/emptyReceiveButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="22dp" android:background="@drawable/bg_primary" android:text="Motta fra PC" android:textAllCaps="false" android:textColor="@color/pb_primary_text" android:textStyle="bold"/>
         <Button android:id="@+id/emptyAddButton" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:background="@drawable/bg_secondary" android:text="+  Legg til vare" android:textAllCaps="false" android:textColor="@color/pb_text" android:textStyle="bold"/>
     </LinearLayout>
@@ -243,6 +244,29 @@
                 android:textAllCaps="false"
                 android:textColor="@color/pb_primary_text"
                 android:textStyle="bold"/>
+        </LinearLayout>
+    </ScrollView>
+
+    <ScrollView
+        android:id="@+id/transferPanel"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone"
+        android:fillViewport="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Overfør" android:textColor="@color/pb_text" android:textSize="27sp" android:textStyle="bold"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="Koble handlelisten direkte til Personlig Budsjett på PC over lokalnettet." android:textColor="@color/pb_muted" android:textSize="14sp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:background="@drawable/bg_card" android:orientation="vertical" android:padding="18dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fra Personlig Budsjett" android:textColor="@color/pb_text" android:textSize="18sp" android:textStyle="bold"/>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="Motta en ny handleliste fra PC." android:textColor="@color/pb_muted" android:textSize="14sp"/>
+                <Button android:id="@+id/transferReceiveButton" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="16dp" android:background="@drawable/bg_primary" android:text="Motta fra PC" android:textAllCaps="false" android:textColor="@color/pb_primary_text" android:textStyle="bold"/>
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:background="@drawable/bg_card" android:orientation="vertical" android:padding="18dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Til Personlig Budsjett" android:textColor="@color/pb_text" android:textSize="18sp" android:textStyle="bold"/>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="Send en fullført handletur tilbake fra Historikk." android:textColor="@color/pb_muted" android:textSize="14sp"/>
+                <Button android:id="@+id/transferHistoryButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="16dp" android:background="@drawable/bg_secondary" android:text="Åpne historikk" android:textAllCaps="false" android:textColor="@color/pb_text" android:textStyle="bold"/>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
@@ -438,8 +462,8 @@ Historikk"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:text="⇩
-Motta fra PC"
+            android:text="⇄
+Overfør"
             android:textAllCaps="false"
             android:textColor="@color/pb_muted"
             android:textSize="12sp"/>

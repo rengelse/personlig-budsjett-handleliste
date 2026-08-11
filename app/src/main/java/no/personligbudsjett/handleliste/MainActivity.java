@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean groupByStore = true;
     private boolean hideDone = false;
     private View overviewPanel;
+    private View transferPanel;
     private TextView overviewStatus;
     private TextView overviewStores;
     private LinearLayout historyContainer;
@@ -162,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
         groupByStore = getPreferences(MODE_PRIVATE).getBoolean("group_by_store", true);
         hideDone = getPreferences(MODE_PRIVATE).getBoolean("hide_done", false);
         overviewPanel = findViewById(R.id.overviewPanel);
+        transferPanel = findViewById(R.id.transferPanel);
         overviewStatus = findViewById(R.id.overviewStatus);
         overviewStores = findViewById(R.id.overviewStores);
         historyContainer = findViewById(R.id.historyContainer);
@@ -200,7 +202,9 @@ public class MainActivity extends AppCompatActivity {
         completeTripButton.setOnClickListener(v -> completeCurrentTrip());
         groupStoreButton.setOnClickListener(v -> setGrouping(true));
         groupCategoryButton.setOnClickListener(v -> setGrouping(false));
-        navScanButton.setOnClickListener(v -> startReceiveFromPc());
+        navScanButton.setOnClickListener(v -> showTransfer());
+        findViewById(R.id.transferReceiveButton).setOnClickListener(v -> startReceiveFromPc());
+        findViewById(R.id.transferHistoryButton).setOnClickListener(v -> showOverview());
         navOverviewButton.setOnClickListener(v -> showOverview());
         navListButton.setOnClickListener(v -> showList());
         navSettingsButton.setOnClickListener(v -> showSettings());
@@ -333,6 +337,7 @@ public class MainActivity extends AppCompatActivity {
         actionBar.setVisibility(View.GONE);
         emptyState.setVisibility(View.GONE);
         settingsPanel.setVisibility(View.GONE);
+        transferPanel.setVisibility(View.GONE);
         overviewPanel.setVisibility(View.VISIBLE);
         renderHistory();
         setActiveNav(navOverviewButton);
@@ -340,14 +345,27 @@ public class MainActivity extends AppCompatActivity {
 
     private void showList() {
         overviewPanel.setVisibility(View.GONE);
+        transferPanel.setVisibility(View.GONE);
         settingsPanel.setVisibility(View.GONE);
         findViewById(R.id.topScroll).setVisibility(View.VISIBLE);
         applyListEmptyState();
         setActiveNav(navListButton);
     }
 
+    private void showTransfer() {
+        overviewPanel.setVisibility(View.GONE);
+        settingsPanel.setVisibility(View.GONE);
+        findViewById(R.id.topScroll).setVisibility(View.GONE);
+        findViewById(R.id.list).setVisibility(View.GONE);
+        actionBar.setVisibility(View.GONE);
+        emptyState.setVisibility(View.GONE);
+        transferPanel.setVisibility(View.VISIBLE);
+        setActiveNav(navScanButton);
+    }
+
     private void showSettings() {
         overviewPanel.setVisibility(View.GONE);
+        transferPanel.setVisibility(View.GONE);
         findViewById(R.id.topScroll).setVisibility(View.GONE);
         findViewById(R.id.list).setVisibility(View.GONE);
         actionBar.setVisibility(View.GONE);
@@ -377,46 +395,99 @@ public class MainActivity extends AppCompatActivity {
     private void showQuickAdd() {
         View view = getLayoutInflater().inflate(R.layout.dialog_add_item, null);
         android.widget.EditText search = view.findViewById(R.id.quickSearch);
-        android.widget.LinearLayout most = view.findViewById(R.id.mostUsedContainer);
-        android.widget.LinearLayout recent = view.findViewById(R.id.recentContainer);
+        android.widget.LinearLayout recent = view.findViewById(R.id.recentList);
+        android.widget.LinearLayout common = view.findViewById(R.id.commonList);
+        android.widget.LinearLayout most = view.findViewById(R.id.mostList);
+        android.widget.LinearLayout categoryGrid = view.findViewById(R.id.categoryGrid);
+        View commonPanel = view.findViewById(R.id.commonPanel);
+        View categoriesPanel = view.findViewById(R.id.categoriesPanel);
+        View mostPanel = view.findViewById(R.id.mostPanel);
+        android.widget.Button tabCommon = view.findViewById(R.id.tabCommon);
+        android.widget.Button tabCategories = view.findViewById(R.id.tabCategories);
+        android.widget.Button tabMost = view.findViewById(R.id.tabMost);
 
         android.content.SharedPreferences prefs = getSharedPreferences("item_usage", MODE_PRIVATE);
         migrateLegacyItemUsage(prefs);
-
         java.util.List<String> names = getUsageNames(prefs);
+        java.util.List<String> recentlyUsed = new java.util.ArrayList<>(names);
+        recentlyUsed.sort((a, b) -> Long.compare(prefs.getLong("last_used_" + b, 0L), prefs.getLong("last_used_" + a, 0L)));
+        for (int i = 0; i < Math.min(6, recentlyUsed.size()); i++) addSuggestionRow(recent, recentlyUsed.get(i), "", search, prefs);
+
+        String[][] commonItems = {
+                {"Melk","Meieri"},{"Brød","Bakeri"},{"Egg","Meieri"},{"Smør","Meieri"},
+                {"Kjøttdeig","Kjøtt"},{"Poteter","Frukt og grønt"},{"Tomater","Frukt og grønt"},{"Ost","Meieri"},
+                {"Bananer","Frukt og grønt"},{"Ris","Tørrvarer"},{"Pasta","Tørrvarer"},{"Kaffe","Drikke"}
+        };
+        for (String[] item : commonItems) addSuggestionRow(common, item[0], item[1], search, prefs);
+
         java.util.List<String> mostUsed = new java.util.ArrayList<>(names);
         mostUsed.sort((a, b) -> {
-            int countCompare = Integer.compare(prefs.getInt("count_" + b, 0), prefs.getInt("count_" + a, 0));
-            if (countCompare != 0) return countCompare;
-            return Long.compare(prefs.getLong("last_used_" + b, 0L), prefs.getLong("last_used_" + a, 0L));
+            int c = Integer.compare(prefs.getInt("count_" + b, 0), prefs.getInt("count_" + a, 0));
+            return c != 0 ? c : Long.compare(prefs.getLong("last_used_" + b, 0L), prefs.getLong("last_used_" + a, 0L));
         });
-        for (int i = 0; i < Math.min(5, mostUsed.size()); i++) addQuickButton(most, mostUsed.get(i), search);
+        for (String name : mostUsed) addSuggestionRow(most, name, "", search, prefs);
+        if (mostUsed.isEmpty()) { TextView t = new TextView(this); t.setText("Mest brukte varer dukker opp her etter hvert."); t.setTextColor(ContextCompat.getColor(this,R.color.pb_muted)); t.setPadding(0,dp(16),0,0); most.addView(t); }
 
-        java.util.List<String> recentlyUsed = new java.util.ArrayList<>(names);
-        recentlyUsed.sort((a, b) -> Long.compare(
-                prefs.getLong("last_used_" + b, 0L),
-                prefs.getLong("last_used_" + a, 0L)));
-        for (int i = 0; i < Math.min(4, recentlyUsed.size()); i++) addQuickButton(recent, recentlyUsed.get(i), search);
+        String[][] cats = {{"🥬","Frukt & grønt"},{"🥛","Meieri & egg"},{"🥩","Kjøtt"},{"🍞","Bakeri"},{"❄","Frys"},{"🥫","Tørrvarer"},{"🥤","Drikke"},{"🍽","Ferdigmat"}};
+        for (int r=0;r<cats.length;r+=2) {
+            LinearLayout row = new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL);
+            for (int k=0;k<2 && r+k<cats.length;k++) {
+                String[] cat=cats[r+k]; android.widget.Button b=new android.widget.Button(this);
+                b.setText(cat[0]+"  "+cat[1]); b.setAllCaps(false); b.setGravity(android.view.Gravity.START|android.view.Gravity.CENTER_VERTICAL);
+                b.setTextColor(ContextCompat.getColor(this,R.color.pb_text)); b.setBackgroundResource(R.drawable.bg_card);
+                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(72),1f); lp.setMargins(k==0?0:dp(5),dp(5),k==0?dp(5):0,dp(5)); row.addView(b,lp);
+                b.setOnClickListener(v -> { populateCategoryProducts(common, cat[1], search, prefs); search.setText(""); search.setHint(cat[1]+" – skriv vare"); commonPanel.setVisibility(View.VISIBLE); categoriesPanel.setVisibility(View.GONE); mostPanel.setVisibility(View.GONE); switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,0); });
+            }
+            categoryGrid.addView(row);
+        }
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(view)
-                .setNegativeButton("Avbryt", null)
-                .setPositiveButton("Legg til", null)
-                .create();
-        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String name = search.getText().toString().trim();
-            if (name.isEmpty()) return;
-            ensureActiveTrip();
-            ShoppingItem item = new ShoppingItem();
-            item.name = name;
-            item.qty = 1;
-            item.unit = "stk";
-            items.add(item);
-            recordItemUsage(prefs, name);
-            saveAndRender();
-            dialog.dismiss();
-        }));
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(view).create();
+        dialog.setOnShowListener(d -> {
+            if (dialog.getWindow()!=null) dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT);
+        });
+        view.findViewById(R.id.quickBack).setOnClickListener(v -> dialog.dismiss());
+        View.OnClickListener commonTab = v -> switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,0);
+        tabCommon.setOnClickListener(commonTab);
+        tabCategories.setOnClickListener(v -> switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,1));
+        tabMost.setOnClickListener(v -> switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,2));
+        search.setOnEditorActionListener((v, actionId, event) -> { String n=search.getText().toString().trim(); if(n.isEmpty()) return false; addQuickItem(n,"",prefs); dialog.dismiss(); return true; });
         dialog.show();
+        if (dialog.getWindow()!=null) { dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT); dialog.getWindow().setBackgroundDrawableResource(R.color.pb_background); }
+    }
+
+    private void switchQuickTab(View common, View cats, View most, android.widget.Button a, android.widget.Button b, android.widget.Button c, int selected) {
+        common.setVisibility(selected==0?View.VISIBLE:View.GONE); cats.setVisibility(selected==1?View.VISIBLE:View.GONE); most.setVisibility(selected==2?View.VISIBLE:View.GONE);
+        android.widget.Button[] bs={a,b,c}; for(int i=0;i<bs.length;i++){ bs[i].setTextColor(ContextCompat.getColor(this,i==selected?R.color.pb_primary:R.color.pb_muted)); bs[i].setTypeface(bs[i].getTypeface(),i==selected?android.graphics.Typeface.BOLD:android.graphics.Typeface.NORMAL); }
+    }
+
+    private void populateCategoryProducts(android.widget.LinearLayout parent, String category, android.widget.EditText search, android.content.SharedPreferences prefs) {
+        parent.removeAllViews();
+        String[] products;
+        switch (category) {
+            case "Frukt & grønt": products=new String[]{"Bananer","Epler","Tomater","Agurk","Paprika","Poteter","Løk","Gulrøtter"}; break;
+            case "Meieri & egg": products=new String[]{"Melk","Egg","Smør","Ost","Yoghurt","Fløte","Rømme"}; break;
+            case "Kjøtt": products=new String[]{"Kjøttdeig","Kyllingfilet","Bacon","Pølser","Karbonadedeig"}; break;
+            case "Bakeri": products=new String[]{"Brød","Rundstykker","Tortilla","Knekkebrød"}; break;
+            case "Frys": products=new String[]{"Frosne grønnsaker","Pizza","Is","Fiskefileter","Bær"}; break;
+            case "Tørrvarer": products=new String[]{"Ris","Pasta","Mel","Sukker","Havregryn","Hermetiske tomater"}; break;
+            case "Drikke": products=new String[]{"Kaffe","Te","Juice","Mineralvann","Saft"}; break;
+            default: products=new String[]{"Middag","Suppe","Salat","Pålegg"};
+        }
+        for (String product : products) addSuggestionRow(parent, product, category, search, prefs);
+    }
+
+    private void addSuggestionRow(android.widget.LinearLayout parent, String name, String category, android.widget.EditText search, android.content.SharedPreferences prefs) {
+        LinearLayout row=new LinearLayout(this); row.setGravity(android.view.Gravity.CENTER_VERTICAL); row.setPadding(0,dp(4),0,dp(4));
+        android.widget.Button plus=new android.widget.Button(this); plus.setText("+"); plus.setTextSize(24); plus.setTextColor(ContextCompat.getColor(this,R.color.pb_primary_text)); plus.setBackgroundResource(R.drawable.bg_primary);
+        row.addView(plus,new LinearLayout.LayoutParams(dp(48),dp(48)));
+        TextView label=new TextView(this); label.setText(name); label.setTextSize(18); label.setTextColor(ContextCompat.getColor(this,R.color.pb_text)); label.setGravity(android.view.Gravity.CENTER_VERTICAL); label.setPadding(dp(16),0,0,0);
+        row.addView(label,new LinearLayout.LayoutParams(0,dp(58),1f));
+        View.OnClickListener add=v -> addQuickItem(name,category,prefs); plus.setOnClickListener(add); label.setOnClickListener(add); parent.addView(row);
+    }
+
+    private void addQuickItem(String name, String category, android.content.SharedPreferences prefs) {
+        ensureActiveTrip(); ShoppingItem item=new ShoppingItem(); item.name=name; item.qty=1; item.unit="stk"; item.category=category==null?"":category; items.add(item); recordItemUsage(prefs,name); saveAndRender();
+        android.widget.Toast.makeText(this,name+" lagt til",android.widget.Toast.LENGTH_SHORT).show();
     }
 
     private java.util.List<String> getUsageNames(android.content.SharedPreferences prefs) {

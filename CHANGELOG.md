@@ -116,3 +116,9 @@
 - APK deles sikkert til Android-installasjonen via FileProvider.
 - Androids systembekreftelse brukes for selve installasjonen.
 - Handleliste og lokal lagring endres ikke.
+
+## 0.7.1
+- Ny bottom navigation og egen Overfør-side.
+- Ny empty state.
+- Fullskjerm Legg til vare med Vanlige, Kategorier og Mest brukt.
+- Lokal kategorikatalog og nylig-brukt-liste.

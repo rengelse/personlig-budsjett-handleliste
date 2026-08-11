@@ -1,17 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="18dp">
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Legg til vare" android:textColor="@color/pb_text" android:textSize="22sp" android:textStyle="bold"/>
-    <EditText android:id="@+id/quickSearch" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="12dp" android:hint="Skriv varenavn ..." android:singleLine="true"/>
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15dp" android:text="MEST BRUKT" android:textColor="@color/pb_muted" android:textSize="12sp" android:textStyle="bold"/>
-    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:scrollbars="none">
-        <LinearLayout android:id="@+id/mostUsedContainer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal"/>
-    </HorizontalScrollView>
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="NYLIG BRUKT" android:textColor="@color/pb_muted" android:textSize="12sp" android:textStyle="bold"/>
-    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:scrollbars="none">
-        <LinearLayout android:id="@+id/recentContainer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal"/>
-    </HorizontalScrollView>
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/pb_background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="72dp" android:gravity="center_vertical" android:paddingLeft="12dp" android:paddingRight="16dp">
+        <Button android:id="@+id/quickBack" android:layout_width="52dp" android:layout_height="52dp" android:background="@android:color/transparent" android:text="‹" android:textSize="34sp" android:textColor="@color/pb_text" android:textAllCaps="false"/>
+        <EditText android:id="@+id/quickSearch" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:layout_marginLeft="4dp" android:hint="Legg til vare" android:singleLine="true" android:paddingLeft="16dp" android:paddingRight="16dp" android:background="@drawable/bg_secondary" android:textColor="@color/pb_text" android:textColorHint="@color/pb_muted"/>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="58dp" android:orientation="horizontal" android:paddingLeft="12dp" android:paddingRight="12dp">
+        <Button android:id="@+id/tabCommon" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@android:color/transparent" android:text="Vanlige" android:textAllCaps="false" android:textColor="@color/pb_primary" android:textStyle="bold"/>
+        <Button android:id="@+id/tabCategories" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@android:color/transparent" android:text="Kategorier" android:textAllCaps="false" android:textColor="@color/pb_muted"/>
+        <Button android:id="@+id/tabMost" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@android:color/transparent" android:text="Mest brukt" android:textAllCaps="false" android:textColor="@color/pb_muted"/>
+    </LinearLayout>
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/pb_border"/>
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:fillViewport="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+            <LinearLayout android:id="@+id/commonPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="NYLIG BRUKT" android:textColor="@color/pb_muted" android:textSize="12sp" android:textStyle="bold"/>
+                <LinearLayout android:id="@+id/recentList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="22dp" android:text="VANLIGE VARER" android:textColor="@color/pb_muted" android:textSize="12sp" android:textStyle="bold"/>
+                <LinearLayout android:id="@+id/commonList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/categoriesPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="KATEGORIER" android:textColor="@color/pb_muted" android:textSize="12sp" android:textStyle="bold"/>
+                <LinearLayout android:id="@+id/categoryGrid" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:orientation="vertical"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/mostPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="MEST BRUKT" android:textColor="@color/pb_muted" android:textSize="12sp" android:textStyle="bold"/>
+                <LinearLayout android:id="@+id/mostList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical"/>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>
