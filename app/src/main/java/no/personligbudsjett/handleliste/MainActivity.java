@@ -675,6 +675,9 @@ public class MainActivity extends AppCompatActivity {
         View catalogIndexPanel = view.findViewById(R.id.catalogIndexPanel);
         View catalogProductsPanel = view.findViewById(R.id.catalogProductsPanel);
         TextView catalogProductTitle = view.findViewById(R.id.catalogProductTitle);
+        TextView catalogProductCount = view.findViewById(R.id.catalogProductCount);
+        View quickTabBar = view.findViewById(R.id.quickTabBar);
+        final LocalCatalog.Category[] activeCatalogCategory = new LocalCatalog.Category[1];
         View commonPanel = view.findViewById(R.id.commonPanel);
         View categoriesPanel = view.findViewById(R.id.categoriesPanel);
         View mostPanel = view.findViewById(R.id.mostPanel);
@@ -707,36 +710,59 @@ public class MainActivity extends AppCompatActivity {
         if (mostUsed.isEmpty()) { TextView t = new TextView(this); t.setText("Mest brukte varer dukker opp her etter hvert."); t.setTextColor(ContextCompat.getColor(this,R.color.pb_muted)); t.setPadding(0,dp(16),0,0); most.addView(t); }
 
         populateCatalogIndex(quickCategoryGrid, categoryGrid, catalogIndexPanel, catalogProductsPanel,
-                catalogProductTitle, catalogProductGrid, search, prefs);
+                catalogProductTitle, catalogProductCount, catalogProductGrid, search, prefs, quickTabBar, activeCatalogCategory);
         search.addTextChangedListener(new android.text.TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             public void onTextChanged(CharSequence text, int start, int before, int count) {
                 if (categoriesPanel.getVisibility() != View.VISIBLE) return;
                 String q = text == null ? "" : text.toString().trim();
                 if (q.isEmpty()) {
-                    catalogProductsPanel.setVisibility(View.GONE);
-                    catalogIndexPanel.setVisibility(View.VISIBLE);
+                    if (activeCatalogCategory[0] != null) {
+                        catalogIndexPanel.setVisibility(View.GONE);
+                        catalogProductsPanel.setVisibility(View.VISIBLE);
+                        quickTabBar.setVisibility(View.GONE);
+                        catalogProductTitle.setText(activeCatalogCategory[0].icon + "  " + activeCatalogCategory[0].title);
+                        catalogProductCount.setText(activeCatalogCategory[0].products.size() + (activeCatalogCategory[0].products.size() == 1 ? " vare" : " varer"));
+                        populateCatalogProductGrid(catalogProductGrid, activeCatalogCategory[0].products, prefs);
+                    } else {
+                        catalogProductsPanel.setVisibility(View.GONE);
+                        catalogIndexPanel.setVisibility(View.VISIBLE);
+                    }
                     return;
                 }
-                java.util.List<LocalCatalog.Product> results = LocalCatalog.search(q);
+                java.util.List<LocalCatalog.Product> results;
+                if (activeCatalogCategory[0] != null) {
+                    results = filterCatalogProducts(activeCatalogCategory[0].products, q);
+                    catalogProductTitle.setText(activeCatalogCategory[0].icon + "  " + activeCatalogCategory[0].title);
+                } else {
+                    results = LocalCatalog.search(q);
+                    catalogProductTitle.setText(results.isEmpty() ? "Ingen treff" : "Søk");
+                }
                 catalogIndexPanel.setVisibility(View.GONE);
                 catalogProductsPanel.setVisibility(View.VISIBLE);
-                catalogProductTitle.setText(results.isEmpty() ? "Ingen treff" : "Søk · " + results.size() + " treff");
+                catalogProductCount.setText(results.size() + (results.size() == 1 ? " vare" : " varer"));
                 populateCatalogProductGrid(catalogProductGrid, results, prefs);
             }
             public void afterTextChanged(android.text.Editable e) {}
         });
-        view.findViewById(R.id.catalogBack).setOnClickListener(v -> {
+        View.OnClickListener backToCatalogIndex = v -> {
+            activeCatalogCategory[0] = null;
             catalogProductsPanel.setVisibility(View.GONE);
             catalogIndexPanel.setVisibility(View.VISIBLE);
-            search.setHint("Legg til vare");
-        });
+            quickTabBar.setVisibility(View.VISIBLE);
+            search.setText("");
+            search.setHint("Søk etter vare");
+        };
+        view.findViewById(R.id.catalogBack).setOnClickListener(backToCatalogIndex);
 
         AlertDialog dialog = new AlertDialog.Builder(this).setView(view).create();
         dialog.setOnShowListener(d -> {
             if (dialog.getWindow()!=null) dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT);
         });
-        view.findViewById(R.id.quickBack).setOnClickListener(v -> dialog.dismiss());
+        view.findViewById(R.id.quickBack).setOnClickListener(v -> {
+            if (activeCatalogCategory[0] != null) backToCatalogIndex.onClick(v);
+            else dialog.dismiss();
+        });
         View.OnClickListener commonTab = v -> switchQuickTab(commonPanel,categoriesPanel,mostPanel,tabCommon,tabCategories,tabMost,0);
         tabCommon.setOnClickListener(commonTab);
         tabCategories.setOnClickListener(v -> {
@@ -744,8 +770,10 @@ public class MainActivity extends AppCompatActivity {
             String q = search.getText().toString().trim();
             if (!q.isEmpty()) {
                 java.util.List<LocalCatalog.Product> results = LocalCatalog.search(q);
+                activeCatalogCategory[0] = null;
                 catalogIndexPanel.setVisibility(View.GONE); catalogProductsPanel.setVisibility(View.VISIBLE);
-                catalogProductTitle.setText(results.isEmpty() ? "Ingen treff" : "Søk · " + results.size() + " treff");
+                catalogProductTitle.setText(results.isEmpty() ? "Ingen treff" : "Søk");
+                catalogProductCount.setText(results.size() + (results.size() == 1 ? " vare" : " varer"));
                 populateCatalogProductGrid(catalogProductGrid, results, prefs);
             }
         });
@@ -772,13 +800,16 @@ public class MainActivity extends AppCompatActivity {
                                       View indexPanel,
                                       View productsPanel,
                                       TextView productTitle,
+                                      TextView productCount,
                                       android.widget.LinearLayout productGrid,
                                       android.widget.EditText search,
-                                      android.content.SharedPreferences prefs) {
+                                      android.content.SharedPreferences prefs,
+                                      View tabBar,
+                                      LocalCatalog.Category[] activeCategory) {
         quickGrid.removeAllViews();
         sectionGrid.removeAllViews();
         addCatalogCategoryRows(quickGrid, LocalCatalog.quickCategories(), indexPanel, productsPanel,
-                productTitle, productGrid, search, prefs, 2, true);
+                productTitle, productCount, productGrid, search, prefs, tabBar, activeCategory, 2, true);
 
         for (String section : LocalCatalog.sections()) {
             TextView heading = new TextView(this);
@@ -789,7 +820,7 @@ public class MainActivity extends AppCompatActivity {
             heading.setPadding(0, dp(22), 0, dp(8));
             sectionGrid.addView(heading);
             addCatalogCategoryRows(sectionGrid, LocalCatalog.categoriesForSection(section), indexPanel,
-                    productsPanel, productTitle, productGrid, search, prefs, 3, false);
+                    productsPanel, productTitle, productCount, productGrid, search, prefs, tabBar, activeCategory, 3, false);
         }
     }
 
@@ -798,9 +829,12 @@ public class MainActivity extends AppCompatActivity {
                                         View indexPanel,
                                         View productsPanel,
                                         TextView productTitle,
+                                        TextView productCount,
                                         android.widget.LinearLayout productGrid,
                                         android.widget.EditText search,
                                         android.content.SharedPreferences prefs,
+                                        View tabBar,
+                                        LocalCatalog.Category[] activeCategory,
                                         int columns,
                                         boolean compact) {
         for (int r = 0; r < categories.size(); r += columns) {
@@ -852,7 +886,7 @@ public class MainActivity extends AppCompatActivity {
                 lp.setMargins(dp(4), dp(4), dp(4), dp(4));
                 row.addView(card, lp);
                 card.setOnClickListener(v -> showCatalogProducts(category, indexPanel, productsPanel,
-                        productTitle, productGrid, search, prefs));
+                        productTitle, productCount, productGrid, search, prefs, tabBar, activeCategory));
             }
             parent.addView(row);
         }
@@ -862,15 +896,32 @@ public class MainActivity extends AppCompatActivity {
                                      View indexPanel,
                                      View productsPanel,
                                      TextView title,
+                                     TextView count,
                                      android.widget.LinearLayout productGrid,
                                      android.widget.EditText search,
-                                     android.content.SharedPreferences prefs) {
+                                     android.content.SharedPreferences prefs,
+                                     View tabBar,
+                                     LocalCatalog.Category[] activeCategory) {
+        activeCategory[0] = category;
         indexPanel.setVisibility(View.GONE);
         productsPanel.setVisibility(View.VISIBLE);
+        tabBar.setVisibility(View.GONE);
         title.setText(category.icon + "  " + category.title);
+        count.setText(category.products.size() + (category.products.size() == 1 ? " vare" : " varer"));
         search.setText("");
         search.setHint("Søk i " + category.title.toLowerCase());
         populateCatalogProductGrid(productGrid, category.products, prefs);
+    }
+
+    private java.util.List<LocalCatalog.Product> filterCatalogProducts(java.util.List<LocalCatalog.Product> products, String query) {
+        String q = query == null ? "" : query.trim().toLowerCase(java.util.Locale.ROOT);
+        if (q.isEmpty()) return new java.util.ArrayList<>(products);
+        java.util.List<LocalCatalog.Product> out = new java.util.ArrayList<>();
+        for (LocalCatalog.Product product : products) {
+            String name = product.name == null ? "" : product.name.toLowerCase(java.util.Locale.ROOT);
+            if (name.contains(q)) out.add(product);
+        }
+        return out;
     }
 
     private void populateCatalogProductGrid(android.widget.LinearLayout parent,

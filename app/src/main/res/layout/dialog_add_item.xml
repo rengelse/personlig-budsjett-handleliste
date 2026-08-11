@@ -8,7 +8,7 @@
         <Button android:id="@+id/quickVoice" android:layout_width="52dp" android:layout_height="52dp" android:layout_marginLeft="8dp" android:background="@drawable/bg_secondary" android:text="🎤" android:textSize="20sp" android:textAllCaps="false" android:contentDescription="Stemmesøk"/>
         <Button android:id="@+id/quickBarcode" android:layout_width="52dp" android:layout_height="52dp" android:layout_marginLeft="6dp" android:background="@drawable/bg_secondary" android:text="▣" android:textSize="24sp" android:textColor="@color/pb_text" android:textAllCaps="false" android:contentDescription="Skann strekkode"/>
     </LinearLayout>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="58dp" android:orientation="horizontal" android:paddingLeft="12dp" android:paddingRight="12dp">
+    <LinearLayout android:id="@+id/quickTabBar" android:layout_width="match_parent" android:layout_height="58dp" android:orientation="horizontal" android:paddingLeft="12dp" android:paddingRight="12dp">
         <Button android:id="@+id/tabCommon" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@android:color/transparent" android:text="Vanlige" android:textAllCaps="false" android:textColor="@color/pb_primary" android:textStyle="bold"/>
         <Button android:id="@+id/tabCategories" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@android:color/transparent" android:text="Kategorier" android:textAllCaps="false" android:textColor="@color/pb_muted"/>
         <Button android:id="@+id/tabMost" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@android:color/transparent" android:text="Mest brukt" android:textAllCaps="false" android:textColor="@color/pb_muted"/>
@@ -30,8 +30,11 @@
                 </LinearLayout>
                 <LinearLayout android:id="@+id/catalogProductsPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="56dp" android:gravity="center_vertical">
-                        <Button android:id="@+id/catalogBack" android:layout_width="48dp" android:layout_height="48dp" android:background="@android:color/transparent" android:text="‹" android:textSize="30sp" android:textColor="@color/pb_text" android:textAllCaps="false"/>
-                        <TextView android:id="@+id/catalogProductTitle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Kategori" android:textSize="20sp" android:textStyle="bold" android:textColor="@color/pb_text"/>
+                        <Button android:id="@+id/catalogBack" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" android:background="@android:color/transparent" android:text="‹" android:textSize="30sp" android:textColor="@color/pb_text" android:textAllCaps="false"/>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/catalogProductTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Kategori" android:textSize="20sp" android:textStyle="bold" android:textColor="@color/pb_text"/>
+                            <TextView android:id="@+id/catalogProductCount" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="0 varer" android:textSize="12sp" android:textColor="@color/pb_muted"/>
+                        </LinearLayout>
                     </LinearLayout>
                     <LinearLayout android:id="@+id/catalogProductGrid" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical"/>
                 </LinearLayout>

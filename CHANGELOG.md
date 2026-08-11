@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.8.8
+- Kategorier i katalogen åpnes nå som en egen katalogside i Legg til vare-flyten.
+- Valgt kategori viser hele vareutvalget med egen overskrift og antall varer.
+- Hovedfanene skjules mens en kategori er åpen, slik at visningen oppleves som et eget nivå.
+- Tilbakepilen øverst går tilbake til kategorioversikten før Legg til vare lukkes.
+- Søk inne i en åpen kategori filtrerer kun varene i den kategorien.
+- Globalt tekst- og stemmesøk fra katalogoversikten søker fortsatt i hele den lokale katalogen.
+- Ingen endring i PB1/PB2, LAN-overføring eller Kassal.app-integrasjonen.
+
 ## v0.8.7
 - Redesignet hovedkategorier i katalogen med ikon øverst og kategorinavn under.
 - Utvidet den lokale/offline katalogen kraftig til flere hundre vareoppføringer.

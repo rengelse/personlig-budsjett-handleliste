@@ -67,5 +67,5 @@ Android-appen bruker samme app-logo som Personlig Budsjett på desktop, inkluder
 Bunnnavigasjonen har tre hovedflater (Handleliste, Historikk, Overfør), mens Innstillinger åpnes fra tannhjulet øverst. Legg til/Overfør bruker egne avrundede handlingsbobler, og hovedlayouten respekterer Android statuslinje/system-insets. Temaet brukes også på brytere, historikkhandlinger og fremdriftskort.
 
 
-## Katalog v0.8.7
+## Katalog v0.8.8
 Katalogen inneholder nå flere hundre lokale basisvarer fordelt på hurtigkategorier og hovedkategorier. Tekst- og stemmesøk bruker denne samme offline-katalogen.
